@@ -11,6 +11,12 @@ service cloud.firestore {
         && request.auth.uid == userId
         && request.resource.data.uid == userId;
       allow delete: if false;
+
+      match /catalogos/{catalogId} {
+        allow read, create, update: if request.auth != null
+          && request.auth.uid == userId;
+        allow delete: if false;
+      }
     }
 
     match /resultados/{resultadoId} {

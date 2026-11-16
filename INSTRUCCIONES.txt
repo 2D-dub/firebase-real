@@ -1,0 +1,46 @@
+JUEGO DE AHORCADO - DESCARGA Y USO LOCAL
+
+DESCARGAR EL PROYECTO
+1. Abre https://github.com/2D-dub/firebase-real
+2. Selecciona Code > Download ZIP y extrae el archivo, o clona el repositorio:
+   git clone https://github.com/2D-dub/firebase-real.git
+3. Abre la carpeta firebase-real en Visual Studio Code.
+
+REQUISITOS
+- Instala Node.js 20.19 o posterior (se recomienda una version LTS).
+- Para usar el telefono y la computadora, conecta ambos a la misma red Wi-Fi.
+
+ABRIR LA PAGINA
+1. En Visual Studio Code, abre Terminal > New Terminal.
+2. Ejecuta estos comandos desde la carpeta del proyecto:
+   npm install
+   npm run web
+3. En la computadora, abre esta direccion local:
+   http://localhost:19006
+4. Para abrir el mismo servidor desde otro dispositivo de la misma red,
+   usa en ese dispositivo la direccion LAN que Expo muestra en la terminal.
+   La computadora debe permanecer encendida y con el servidor en ejecucion.
+
+Hay un solo servidor local: npm run web. No cierres la terminal mientras
+uses la pagina. Si Windows pregunta, permite el acceso de Node.js a redes
+privadas para que los otros dispositivos puedan conectarse.
+
+BASE DE DATOS FIREBASE
+Inicia sesion con una cuenta verificada. Al abrir el Pokedex se guardan los
+catalogos en Firestore, dentro de usuarios/<UID>/catalogos:
+- pokemones: lista e imagenes del Pokedex.
+- peliculas: titulos, imagenes, directores y anos.
+- pokemon_<ID>: estadisticas del Pokemon cuyo detalle se haya abierto.
+
+Para permitir que la aplicacion escriba los catalogos, publica las reglas
+actualizadas una vez desde la carpeta del proyecto:
+   npm install --global firebase-tools
+   firebase login
+   firebase use fir-api-d4698
+   firebase deploy --only firestore:rules
+
+No agregues contrasenas, claves privadas ni archivos de cuenta de servicio
+al repositorio. La direccion localhost solo funciona en la computadora que
+ejecuta el servidor; otros dispositivos deben usar la direccion LAN que
+muestra Expo. Para acceso desde fuera de la red local se necesita un hosting
+publico y esta guia no publica el sitio en Internet.

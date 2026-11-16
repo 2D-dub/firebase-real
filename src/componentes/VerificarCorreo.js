@@ -3,6 +3,7 @@ import { StyleSheet, Text, View } from 'react-native';
 import { reload, sendEmailVerification, signOut } from 'firebase/auth';
 import { auth } from '../../firebase/config';
 import BotonBrillante from './BotonBrillante';
+import FondoEspacial from './FondoEspacial';
 import { ESTILO_CURSOR } from './tema';
 import avisar from '../avisar';
 
@@ -57,6 +58,7 @@ export default function VerificarCorreo({ correo, onVerificado }) {
 
   return (
     <View style={[styles.pantalla, ESTILO_CURSOR]}>
+      <FondoEspacial />
       <View style={styles.tarjeta}>
         <Text style={styles.titulo}>Verifica tu correo</Text>
         <Text style={styles.descripcion}>
@@ -96,7 +98,8 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     padding: 22,
-    backgroundColor: '#182126',
+    overflow: 'hidden',
+    backgroundColor: '#050B18',
   },
   tarjeta: {
     width: '100%',
@@ -104,23 +107,23 @@ const styles = StyleSheet.create({
     padding: 26,
     borderRadius: 18,
     borderWidth: 1,
-    borderColor: '#65736C',
-    backgroundColor: '#222F32',
+    borderColor: '#456A9E',
+    backgroundColor: 'rgba(8, 17, 40, 0.94)',
   },
   titulo: {
-    color: '#F5F1E8',
+    color: '#F3FAFF',
     fontSize: 26,
     fontWeight: '900',
     textAlign: 'center',
   },
   descripcion: {
-    color: '#D5DBD7',
+    color: '#C2D3E8',
     lineHeight: 22,
     textAlign: 'center',
     marginTop: 14,
   },
   ayuda: {
-    color: '#AEB8B4',
+    color: '#8CA0C2',
     textAlign: 'center',
     marginTop: 8,
     marginBottom: 20,

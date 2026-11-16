@@ -1,15 +1,23 @@
 import React from 'react';
 import { ScrollView, StyleSheet, Text, View } from 'react-native';
 import BotonBrillante from './BotonBrillante';
+import FondoEspacial from './FondoEspacial';
 import { ESTILO_CURSOR } from './tema';
 
 export default function Home({ navigation }) {
   return (
     <View style={[styles.pantalla, ESTILO_CURSOR]}>
+      <FondoEspacial />
       <ScrollView contentContainerStyle={styles.contenido}>
         <View style={styles.encabezado}>
           <Text style={styles.titulo}>¿Quieres jugar?</Text>
-          <Text style={styles.descripcion}>Elige el tema del ahorcado.</Text>
+          <Text style={styles.descripcion}>Elige tu próximo desafío.</Text>
+          <BotonBrillante
+            title="Volver al Pokédex"
+            compact
+            variant="secondary"
+            onPress={() => navigation.navigate('Pokedex')}
+          />
         </View>
 
         <View style={styles.opciones}>
@@ -42,7 +50,8 @@ export default function Home({ navigation }) {
 const styles = StyleSheet.create({
   pantalla: {
     flex: 1,
-    backgroundColor: '#182126',
+    overflow: 'hidden',
+    backgroundColor: '#050B18',
   },
   contenido: {
     flexGrow: 1,
@@ -55,13 +64,13 @@ const styles = StyleSheet.create({
     marginBottom: 26,
   },
   titulo: {
-    color: '#F5F1E8',
+    color: '#F3FAFF',
     fontSize: 34,
     fontWeight: '900',
     textAlign: 'center',
   },
   descripcion: {
-    color: '#C4CCC9',
+    color: '#A8B9D4',
     textAlign: 'center',
     marginTop: 8,
   },
@@ -81,23 +90,27 @@ const styles = StyleSheet.create({
     margin: 10,
     borderRadius: 18,
     borderWidth: 1,
-    borderColor: '#53625F',
-    backgroundColor: '#222F32',
+    borderColor: 'rgba(86, 185, 241, 0.32)',
+    backgroundColor: 'rgba(8, 18, 43, 0.93)',
+    shadowColor: '#147EC2',
+    shadowOpacity: 0.22,
+    shadowRadius: 12,
+    elevation: 3,
   },
   icono: {
-    color: '#E8B75A',
+    color: '#70E8FF',
     fontSize: 42,
     fontWeight: '900',
     marginBottom: 8,
   },
   nombre: {
-    color: '#F5F1E8',
+    color: '#F3FAFF',
     fontSize: 23,
     fontWeight: '800',
     marginBottom: 5,
   },
   descripcionTarjeta: {
-    color: '#C4CCC9',
+    color: '#A8B9D4',
     textAlign: 'center',
     marginBottom: 18,
   },

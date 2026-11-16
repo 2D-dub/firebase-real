@@ -3,6 +3,7 @@ import { ScrollView, StyleSheet, Text, View } from 'react-native';
 import { doc, onSnapshot, runTransaction } from 'firebase/firestore';
 import { auth, db } from '../../firebase/config';
 import BotonBrillante from './BotonBrillante';
+import FondoEspacial from './FondoEspacial';
 import { COSMETICOS, ESTILO_CURSOR } from './tema';
 import avisar from '../avisar';
 
@@ -93,6 +94,7 @@ export default function Tienda() {
 
   return (
     <View style={[styles.pantalla, ESTILO_CURSOR]}>
+      <FondoEspacial />
       <ScrollView contentContainerStyle={styles.contenido}>
         <Text style={styles.insignia}>RECOMPENSAS DE ENTRENADOR</Text>
         <Text style={styles.titulo}>Tienda de recompensas</Text>
@@ -195,7 +197,8 @@ export default function Tienda() {
 const styles = StyleSheet.create({
   pantalla: {
     flex: 1,
-    backgroundColor: '#182126',
+    overflow: 'hidden',
+    backgroundColor: '#050B18',
   },
   contenido: {
     flexGrow: 1,
@@ -204,21 +207,21 @@ const styles = StyleSheet.create({
     paddingBottom: 34,
   },
   insignia: {
-    color: '#E8B75A',
+    color: '#70E8FF',
     fontSize: 10,
     fontWeight: '800',
     letterSpacing: 2,
     textAlign: 'center',
   },
   titulo: {
-    color: '#F5F1E8',
+    color: '#F3FAFF',
     fontSize: 30,
     fontWeight: '900',
     textAlign: 'center',
     marginTop: 5,
   },
   descripcion: {
-    color: '#C4CCC9',
+    color: '#A8B9D4',
     textAlign: 'center',
     marginTop: 7,
     marginBottom: 17,
@@ -233,16 +236,16 @@ const styles = StyleSheet.create({
     marginBottom: 16,
     borderRadius: 14,
     borderWidth: 1,
-    borderColor: '#53625F',
-    backgroundColor: '#222F32',
+    borderColor: 'rgba(101, 218, 255, 0.28)',
+    backgroundColor: 'rgba(7, 17, 40, 0.86)',
   },
   puntos: {
-    color: '#E8B75A',
+    color: '#70E8FF',
     fontWeight: '900',
     fontSize: 16,
   },
   progreso: {
-    color: '#C4CCC9',
+    color: '#A8B9D4',
     fontSize: 13,
     alignSelf: 'center',
   },
@@ -259,8 +262,8 @@ const styles = StyleSheet.create({
     margin: 7,
     borderRadius: 18,
     borderWidth: 1,
-    borderColor: '#53625F',
-    backgroundColor: '#222F32',
+    borderColor: 'rgba(86, 185, 241, 0.32)',
+    backgroundColor: 'rgba(8, 18, 43, 0.93)',
   },
   muestra: {
     height: 65,
@@ -269,8 +272,8 @@ const styles = StyleSheet.create({
     marginBottom: 13,
     borderRadius: 13,
     borderWidth: 1,
-    borderColor: '#E8B75A',
-    backgroundColor: '#1B272A',
+    borderColor: '#70E8FF',
+    backgroundColor: 'rgba(3, 10, 26, 0.9)',
     shadowOpacity: 0.45,
     shadowRadius: 11,
   },
@@ -281,10 +284,10 @@ const styles = StyleSheet.create({
     shadowRadius: 18,
   },
   nombreMuestra: {
-    color: '#E8B75A',
+    color: '#70E8FF',
     fontSize: 18,
     fontWeight: '900',
-    textShadowColor: '#E8B75A',
+    textShadowColor: '#70E8FF',
     textShadowOffset: { width: 0, height: 0 },
     textShadowRadius: 8,
   },
@@ -294,19 +297,19 @@ const styles = StyleSheet.create({
     textShadowRadius: 15,
   },
   etiquetaMuestra: {
-    color: '#D5DBD7',
+    color: '#C3CFDF',
     fontSize: 8,
     fontWeight: '900',
     letterSpacing: 1.4,
   },
   nombreItem: {
-    color: '#F5F1E8',
+    color: '#F3FAFF',
     fontSize: 16,
     fontWeight: '800',
   },
   textoItem: {
     minHeight: 38,
-    color: '#C4CCC9',
+    color: '#A8B9D4',
     fontSize: 12,
     lineHeight: 18,
     marginTop: 4,

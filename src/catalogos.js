@@ -1,3 +1,6 @@
+import { doc, getDoc, serverTimestamp, setDoc } from 'firebase/firestore';
+import { db } from '../firebase/config';
+
 const TITULOS_PELICULAS = {
   '2baf70d1-42bb-4437-b551-e5fed5a87abe': 'Castillo en el cielo',
   '12cfb892-aac0-4c5b-94af-521852e46d6a': 'La tumba de las luciérnagas',
@@ -23,8 +26,8 @@ const TITULOS_PELICULAS = {
   '790e0028-a31c-4626-a694-86b7a8cada40': 'La tijereta y la bruja',
 };
 
-let pokemonPromise;
-let peliculasPromise;
+const catalogoPromises = new Map();
+const detallePokemonPromises = new Map();
 
 async function cargarDatos(url) {
   const respuesta = await fetch(url);
@@ -42,49 +45,123 @@ async function cargarLista(url) {
   return datos;
 }
 
-export function obtenerPokemones() {
-  if (!pokemonPromise) {
-    pokemonPromise = cargarDatos('https://pokeapi.co/api/v2/pokemon?limit=1025')
-      .then((datos) => {
-        if (!Array.isArray(datos.results)) {
-          throw new Error('El servicio de Pokémon devolvió datos con un formato inesperado.');
+function cargarCatalogo(uid, nombre, cargarDesdeApi) {
+  const clave = `${uid || 'publico'}:${nombre}`;
+  if (!catalogoPromises.has(clave)) {
+    const cargar = async () => {
+      const referencia = uid ? doc(db, 'usuarios', uid, 'catalogos', nombre) : null;
+      if (referencia) {
+        const snapshot = await getDoc(referencia);
+        const guardado = snapshot.data();
+        if (guardado?.version === 1 && Array.isArray(guardado.items)) {
+          return guardado.items;
         }
-        return datos.results.map((pokemon) => {
-          const id = pokemon.url.split('/').filter(Boolean).pop();
-          return {
-            id,
-            nombre: pokemon.name,
-            imagen: `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/${id}.png`,
-          };
+      }
+
+      const items = await cargarDesdeApi();
+      if (referencia) {
+        await setDoc(referencia, {
+          version: 1,
+          items,
+          actualizadoEn: serverTimestamp(),
         });
-      })
-      .catch((error) => {
-        pokemonPromise = null;
-        throw error;
-      });
+      }
+      return items;
+    };
+
+    const promise = cargar().catch((error) => {
+      catalogoPromises.delete(clave);
+      throw error;
+    });
+    catalogoPromises.set(clave, promise);
   }
-  return pokemonPromise;
+  return catalogoPromises.get(clave);
 }
 
-export function obtenerPeliculas() {
-  if (!peliculasPromise) {
-    peliculasPromise = cargarLista('https://ghibliapi.vercel.app/films')
-      .then((datos) =>
-        datos.map((pelicula) => ({
-          id: pelicula.id,
-          nombre: TITULOS_PELICULAS[pelicula.id] || pelicula.title,
-          imagen: pelicula.image,
-          director: pelicula.director,
-          anio: pelicula.release_date,
-          calificacion: pelicula.rt_score,
-        }))
-      )
-      .catch((error) => {
-        peliculasPromise = null;
-        throw error;
-      });
+async function cargarPokemonesDesdeApi() {
+  const datos = await cargarDatos('https://pokeapi.co/api/v2/pokemon?limit=1025');
+  if (!Array.isArray(datos.results)) {
+    throw new Error('El servicio de Pokémon devolvió datos con un formato inesperado.');
   }
-  return peliculasPromise;
+  return datos.results.map((pokemon) => {
+    const id = pokemon.url.split('/').filter(Boolean).pop();
+    return {
+      id,
+      nombre: pokemon.name,
+      imagen: `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/${id}.png`,
+    };
+  });
+}
+
+async function cargarPeliculasDesdeApi() {
+  const datos = await cargarLista('https://ghibliapi.vercel.app/films');
+  return datos.map((pelicula) => ({
+    id: pelicula.id,
+    nombre: TITULOS_PELICULAS[pelicula.id] || pelicula.title,
+    imagen: pelicula.image,
+    director: pelicula.director,
+    anio: pelicula.release_date,
+    calificacion: pelicula.rt_score,
+  }));
+}
+
+export function obtenerPokemones(uid) {
+  return cargarCatalogo(uid, 'pokemones', cargarPokemonesDesdeApi);
+}
+
+export function obtenerPeliculas(uid) {
+  return cargarCatalogo(uid, 'peliculas', cargarPeliculasDesdeApi);
+}
+
+async function cargarDetallePokemon(id) {
+  const datos = await cargarDatos(`https://pokeapi.co/api/v2/pokemon/${id}`);
+  return {
+    id: String(datos.id),
+    nombre: datos.name,
+    altura: datos.height,
+    peso: datos.weight,
+    imagen:
+      datos.sprites?.other?.['official-artwork']?.front_default ||
+      datos.sprites?.front_default,
+    tipos: datos.types.map((tipo) => tipo.type.name),
+    estadisticas: datos.stats.map((estadistica) => ({
+      nombre: estadistica.stat.name,
+      valor: estadistica.base_stat,
+    })),
+  };
+}
+
+export function obtenerDetallePokemon(uid, id) {
+  const clave = `${uid || 'publico'}:${id}`;
+  if (!detallePokemonPromises.has(clave)) {
+    const cargar = async () => {
+      const referencia = uid
+        ? doc(db, 'usuarios', uid, 'catalogos', `pokemon_${id}`)
+        : null;
+      if (referencia) {
+        const snapshot = await getDoc(referencia);
+        const guardado = snapshot.data();
+        if (guardado?.version === 1 && guardado.detalle) return guardado.detalle;
+      }
+
+      const detalle = await cargarDetallePokemon(id);
+      if (referencia) {
+        await setDoc(referencia, {
+          version: 1,
+          detalle,
+          actualizadoEn: serverTimestamp(),
+        });
+      }
+      return detalle;
+    };
+
+    const promise = cargar().catch((error) => {
+      detallePokemonPromises.delete(clave);
+      throw error;
+    });
+    detallePokemonPromises.set(clave, promise);
+  }
+  return detallePokemonPromises.get(clave);
 }
 
 export function normalizarPalabra(texto) {

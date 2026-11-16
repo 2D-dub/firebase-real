@@ -5,6 +5,7 @@ import { auth } from '../../firebase/config';
 import asegurarPerfil from '../../firebase/perfiles';
 import { useNavigation } from '@react-navigation/native';
 import BotonBrillante from './BotonBrillante';
+import FondoEspacial from './FondoEspacial';
 import { ESTILO_CURSOR } from './tema';
 import avisar from '../avisar';
 
@@ -51,6 +52,7 @@ export default function Login() {
 
   return (
     <View style={[styles.pantalla, ESTILO_CURSOR]}>
+      <FondoEspacial />
       <ScrollView contentContainerStyle={styles.contenido} keyboardShouldPersistTaps="handled">
         <View style={styles.tarjeta}>
           <Text style={styles.titulo}>Iniciar sesión</Text>
@@ -103,7 +105,8 @@ export default function Login() {
 const styles = StyleSheet.create({
   pantalla: {
     flex: 1,
-    backgroundColor: '#182126',
+    overflow: 'hidden',
+    backgroundColor: '#050B18',
   },
   contenido: {
     flexGrow: 1,
@@ -117,22 +120,22 @@ const styles = StyleSheet.create({
     padding: 28,
     borderRadius: 24,
     borderWidth: 1,
-    borderColor: '#53625F',
-    backgroundColor: '#222F32',
-    shadowColor: '#000000',
-    shadowOpacity: 0.22,
-    shadowRadius: 28,
+    borderColor: 'rgba(86, 185, 241, 0.38)',
+    backgroundColor: 'rgba(8, 17, 40, 0.94)',
+    shadowColor: '#147EC2',
+    shadowOpacity: 0.3,
+    shadowRadius: 24,
     shadowOffset: { width: 0, height: 8 },
     elevation: 8,
   },
   titulo: {
-    color: '#F5F1E8',
+    color: '#F3FAFF',
     fontSize: 30,
     fontWeight: '900',
     textAlign: 'center',
   },
   descripcion: {
-    color: '#C4CCC9',
+    color: '#A8B9D4',
     fontSize: 14,
     lineHeight: 21,
     textAlign: 'center',
@@ -140,7 +143,7 @@ const styles = StyleSheet.create({
     marginBottom: 27,
   },
   etiqueta: {
-    color: '#AEB8B4',
+    color: '#8CA0C2',
     fontSize: 10,
     fontWeight: '800',
     letterSpacing: 1.4,
@@ -152,17 +155,17 @@ const styles = StyleSheet.create({
     paddingHorizontal: 15,
     marginBottom: 19,
     borderWidth: 1,
-    borderColor: '#53625F',
+    borderColor: '#315578',
     borderRadius: 13,
-    backgroundColor: '#182126',
-    color: '#F5F1E8',
+    backgroundColor: 'rgba(3, 10, 26, 0.92)',
+    color: '#F3FAFF',
     fontSize: 15,
   },
   boton: {
     marginTop: 4,
   },
   pie: {
-    color: '#C4CCC9',
+    color: '#A8B9D4',
     textAlign: 'center',
     fontSize: 13,
     marginTop: 25,

@@ -18,7 +18,7 @@ export const COSMETICOS = [
     nombre: 'Azul',
     descripcion: 'Tu color inicial.',
     precio: 0,
-    color: '#69C5C9',
+    color: '#70E8FF',
   },
   {
     id: 'violeta',

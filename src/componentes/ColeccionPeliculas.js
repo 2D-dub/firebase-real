@@ -4,6 +4,7 @@ import { doc, onSnapshot } from 'firebase/firestore';
 import { auth, db } from '../../firebase/config';
 import { obtenerPeliculas } from '../catalogos';
 import BotonBrillante from './BotonBrillante';
+import FondoEspacial from './FondoEspacial';
 import { ESTILO_CURSOR } from './tema';
 import avisar from '../avisar';
 
@@ -15,7 +16,7 @@ export default function ColeccionPeliculas({ navigation }) {
 
   useEffect(() => {
     let activa = true;
-    obtenerPeliculas()
+    obtenerPeliculas(uid)
       .then((datos) => {
         if (activa) setPeliculas(datos);
       })
@@ -30,7 +31,7 @@ export default function ColeccionPeliculas({ navigation }) {
     return () => {
       activa = false;
     };
-  }, []);
+  }, [uid]);
 
   useEffect(() => {
     if (!uid) return undefined;
@@ -52,6 +53,7 @@ export default function ColeccionPeliculas({ navigation }) {
 
   return (
     <View style={[styles.pantalla, ESTILO_CURSOR]}>
+      <FondoEspacial />
       <ScrollView contentContainerStyle={styles.contenido}>
         <Text style={styles.titulo}>Películas existentes</Text>
         <Text style={styles.descripcion}>
@@ -62,7 +64,7 @@ export default function ColeccionPeliculas({ navigation }) {
         </Text>
 
         {cargando ? (
-          <ActivityIndicator size="large" color="#E8B75A" style={styles.cargando} />
+          <ActivityIndicator size="large" color="#70E8FF" style={styles.cargando} />
         ) : (
           <View style={styles.lista}>
             {peliculas.map((pelicula) => {
@@ -125,7 +127,8 @@ export default function ColeccionPeliculas({ navigation }) {
 const styles = StyleSheet.create({
   pantalla: {
     flex: 1,
-    backgroundColor: '#182126',
+    overflow: 'hidden',
+    backgroundColor: '#050B18',
   },
   contenido: {
     flexGrow: 1,
@@ -134,18 +137,18 @@ const styles = StyleSheet.create({
     paddingBottom: 32,
   },
   titulo: {
-    color: '#F5F1E8',
+    color: '#F3FAFF',
     fontSize: 30,
     fontWeight: '900',
     textAlign: 'center',
   },
   descripcion: {
-    color: '#C4CCC9',
+    color: '#A8B9D4',
     textAlign: 'center',
     marginTop: 8,
   },
   progreso: {
-    color: '#E8B75A',
+    color: '#70E8FF',
     fontWeight: '800',
     marginTop: 12,
     marginBottom: 16,
@@ -164,12 +167,12 @@ const styles = StyleSheet.create({
     margin: 7,
     borderRadius: 16,
     borderWidth: 1,
-    borderColor: '#65736C',
-    backgroundColor: '#253236',
+    borderColor: 'rgba(86, 185, 241, 0.32)',
+    backgroundColor: 'rgba(8, 18, 43, 0.93)',
   },
   tarjetaBloqueada: {
-    borderColor: '#4A5353',
-    backgroundColor: '#202728',
+    borderColor: '#33445F',
+    backgroundColor: 'rgba(7, 14, 30, 0.92)',
   },
   marcoImagen: {
     position: 'relative',
@@ -177,7 +180,7 @@ const styles = StyleSheet.create({
     marginBottom: 10,
     overflow: 'hidden',
     borderRadius: 10,
-    backgroundColor: '#151B1D',
+    backgroundColor: '#050B18',
   },
   imagen: {
     width: '100%',
@@ -194,26 +197,26 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   candado: {
-    color: '#C0C3C0',
+    color: '#C3CFDF',
     fontSize: 44,
     fontWeight: '900',
   },
   nombre: {
-    color: '#F5F1E8',
+    color: '#F3FAFF',
     fontSize: 15,
     fontWeight: '800',
     textAlign: 'center',
   },
   textoBloqueado: {
-    color: '#858B89',
+    color: '#8CA0C2',
   },
   detalle: {
-    color: '#C4CCC9',
+    color: '#A8B9D4',
     fontSize: 11,
     marginTop: 5,
   },
   detalleBloqueado: {
-    color: '#747B79',
+    color: '#7584A1',
     fontSize: 11,
     textAlign: 'center',
     marginTop: 6,

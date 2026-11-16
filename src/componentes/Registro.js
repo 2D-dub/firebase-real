@@ -5,6 +5,7 @@ import { auth } from '../../firebase/config';
 import asegurarPerfil from '../../firebase/perfiles';
 import { useNavigation } from '@react-navigation/native';
 import BotonBrillante from './BotonBrillante';
+import FondoEspacial from './FondoEspacial';
 import { ESTILO_CURSOR } from './tema';
 import avisar from '../avisar';
 
@@ -57,6 +58,7 @@ export default function Registro() {
 
   return (
     <View style={[styles.pantalla, ESTILO_CURSOR]}>
+      <FondoEspacial />
       <ScrollView contentContainerStyle={styles.contenido} keyboardShouldPersistTaps="handled">
         <View style={styles.tarjeta}>
           <Text style={styles.titulo}>Registrarse</Text>
@@ -124,7 +126,8 @@ export default function Registro() {
 const styles = StyleSheet.create({
   pantalla: {
     flex: 1,
-    backgroundColor: '#182126',
+    overflow: 'hidden',
+    backgroundColor: '#050B18',
   },
   contenido: {
     flexGrow: 1,
@@ -138,22 +141,22 @@ const styles = StyleSheet.create({
     padding: 25,
     borderRadius: 24,
     borderWidth: 1,
-    borderColor: '#53625F',
-    backgroundColor: '#222F32',
-    shadowColor: '#000000',
-    shadowOpacity: 0.2,
+    borderColor: 'rgba(86, 185, 241, 0.38)',
+    backgroundColor: 'rgba(8, 17, 40, 0.94)',
+    shadowColor: '#147EC2',
+    shadowOpacity: 0.3,
     shadowRadius: 24,
     shadowOffset: { width: 0, height: 8 },
     elevation: 7,
   },
   titulo: {
-    color: '#F5F1E8',
+    color: '#F3FAFF',
     fontSize: 28,
     fontWeight: '900',
     textAlign: 'center',
   },
   descripcion: {
-    color: '#C4CCC9',
+    color: '#A8B9D4',
     fontSize: 13,
     textAlign: 'center',
     lineHeight: 20,
@@ -165,14 +168,14 @@ const styles = StyleSheet.create({
     paddingHorizontal: 14,
     marginBottom: 12,
     borderWidth: 1,
-    borderColor: '#53625F',
+    borderColor: '#315578',
     borderRadius: 12,
-    backgroundColor: '#182126',
-    color: '#F5F1E8',
+    backgroundColor: 'rgba(3, 10, 26, 0.92)',
+    color: '#F3FAFF',
     fontSize: 14,
   },
   pie: {
-    color: '#C4CCC9',
+    color: '#A8B9D4',
     textAlign: 'center',
     fontSize: 13,
     marginTop: 20,

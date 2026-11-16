@@ -4,6 +4,7 @@ import { collection, doc, onSnapshot, runTransaction } from 'firebase/firestore'
 import { auth, db } from '../../firebase/config';
 import { contarLetras, normalizarPalabra, obtenerPeliculas, obtenerPokemones } from '../catalogos';
 import BotonBrillante from './BotonBrillante';
+import FondoEspacial from './FondoEspacial';
 import { ESTILO_CURSOR, PUNTOS_POR_DIFICULTAD } from './tema';
 import avisar from '../avisar';
 
@@ -66,7 +67,7 @@ export default function JuegoAhorcado({ navigation, route }) {
     const cargar = esJuegoPeliculas ? obtenerPeliculas : obtenerPokemones;
     setCargando(true);
     setErrorCarga('');
-    cargar()
+    cargar(uid)
       .then((datos) => {
         if (activa) setContenidos(datos);
       })
@@ -81,7 +82,7 @@ export default function JuegoAhorcado({ navigation, route }) {
     return () => {
       activa = false;
     };
-  }, [esJuegoPeliculas]);
+  }, [esJuegoPeliculas, uid]);
 
   useEffect(() => {
     if (!uid) return undefined;
@@ -208,6 +209,7 @@ export default function JuegoAhorcado({ navigation, route }) {
 
   return (
     <View style={[styles.pantalla, ESTILO_CURSOR]}>
+      <FondoEspacial />
       <ScrollView contentContainerStyle={styles.contenido}>
         <View style={styles.encabezado}>
           <Text style={styles.insignia}>JUEGO DE AHORCADO</Text>
@@ -258,7 +260,7 @@ export default function JuegoAhorcado({ navigation, route }) {
           </View>
 
           {cargando ? (
-            <ActivityIndicator size="large" color="#E8B75A" style={styles.cargando} />
+            <ActivityIndicator size="large" color="#70E8FF" style={styles.cargando} />
           ) : errorCarga ? (
             <View style={styles.inicio}>
               <Text style={styles.error}>No se pudieron cargar las palabras: {errorCarga}</Text>
@@ -266,7 +268,7 @@ export default function JuegoAhorcado({ navigation, route }) {
                 setErrorCarga('');
                 setCargando(true);
                 const cargar = esJuegoPeliculas ? obtenerPeliculas : obtenerPokemones;
-                cargar()
+                cargar(uid)
                   .then(setContenidos)
                   .catch((error) => setErrorCarga(error.message))
                   .finally(() => setCargando(false));
@@ -397,7 +399,8 @@ export default function JuegoAhorcado({ navigation, route }) {
 const styles = StyleSheet.create({
   pantalla: {
     flex: 1,
-    backgroundColor: '#182126',
+    overflow: 'hidden',
+    backgroundColor: '#050B18',
   },
   contenido: {
     flexGrow: 1,
@@ -412,20 +415,20 @@ const styles = StyleSheet.create({
     marginBottom: 18,
   },
   insignia: {
-    color: '#E8B75A',
+    color: '#70E8FF',
     fontSize: 10,
     fontWeight: '800',
     letterSpacing: 2,
   },
   titulo: {
-    color: '#F5F1E8',
+    color: '#F3FAFF',
     fontSize: 30,
     fontWeight: '900',
     textAlign: 'center',
     marginTop: 5,
   },
   descripcion: {
-    color: '#C4CCC9',
+    color: '#A8B9D4',
     textAlign: 'center',
     marginTop: 7,
   },
@@ -439,11 +442,11 @@ const styles = StyleSheet.create({
     marginBottom: 14,
     borderRadius: 14,
     borderWidth: 1,
-    borderColor: '#53625F',
-    backgroundColor: '#222F32',
+    borderColor: 'rgba(101, 218, 255, 0.28)',
+    backgroundColor: 'rgba(7, 17, 40, 0.86)',
   },
   dato: {
-    color: '#F0D38B',
+    color: '#83F0FF',
     fontSize: 13,
     fontWeight: '700',
     marginHorizontal: 8,
@@ -454,8 +457,8 @@ const styles = StyleSheet.create({
     padding: 20,
     borderRadius: 18,
     borderWidth: 1,
-    borderColor: '#53625F',
-    backgroundColor: '#222F32',
+    borderColor: 'rgba(101, 218, 255, 0.28)',
+    backgroundColor: 'rgba(7, 17, 40, 0.9)',
   },
   acciones: {
     flexDirection: 'row',
@@ -465,7 +468,7 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   etiqueta: {
-    color: '#AEB8B4',
+    color: '#BCD0EA',
     fontSize: 10,
     fontWeight: '800',
     letterSpacing: 1.4,
@@ -491,7 +494,7 @@ const styles = StyleSheet.create({
     paddingVertical: 28,
   },
   textoInicio: {
-    color: '#C4CCC9',
+    color: '#A8B9D4',
     textAlign: 'center',
     marginBottom: 18,
   },
@@ -503,12 +506,12 @@ const styles = StyleSheet.create({
     marginVertical: 42,
   },
   error: {
-    color: '#F0A5A5',
+    color: '#FF9BAF',
     textAlign: 'center',
     marginBottom: 16,
   },
   resultadoCompletado: {
-    color: '#D5DBD7',
+    color: '#D4E6F8',
     fontSize: 16,
     fontWeight: '700',
     textAlign: 'center',
@@ -543,7 +546,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     marginTop: 20,
     borderRadius: 56,
-    backgroundColor: '#182126',
+    backgroundColor: '#050B18',
   },
   silueta: {
     position: 'absolute',
@@ -553,17 +556,17 @@ const styles = StyleSheet.create({
     borderRadius: 70,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: 'rgba(24, 33, 38, 0.82)',
+    backgroundColor: 'rgba(5, 11, 24, 0.82)',
     borderWidth: 1,
-    borderColor: '#65736C',
+    borderColor: '#456A9E',
   },
   siluetaTexto: {
-    color: '#E8B75A',
+    color: '#70E8FF',
     fontSize: 58,
     fontWeight: '900',
   },
   nombreRevelado: {
-    color: '#E8B75A',
+    color: '#70E8FF',
     fontSize: 13,
     fontWeight: '900',
     textAlign: 'center',
@@ -585,7 +588,7 @@ const styles = StyleSheet.create({
     width: 115,
     height: 5,
     borderRadius: 3,
-    backgroundColor: '#E8B75A',
+    backgroundColor: '#70E8FF',
     opacity: 0,
   },
   posteHorca: {
@@ -594,7 +597,7 @@ const styles = StyleSheet.create({
     bottom: 12,
     width: 5,
     height: 142,
-    backgroundColor: '#E8B75A',
+    backgroundColor: '#70E8FF',
     opacity: 0,
   },
   barraHorca: {
@@ -603,7 +606,7 @@ const styles = StyleSheet.create({
     top: 12,
     width: 82,
     height: 5,
-    backgroundColor: '#E8B75A',
+    backgroundColor: '#70E8FF',
     opacity: 0,
   },
   cuerdaHorca: {
@@ -612,7 +615,7 @@ const styles = StyleSheet.create({
     top: 14,
     width: 4,
     height: 22,
-    backgroundColor: '#E8B75A',
+    backgroundColor: '#70E8FF',
     opacity: 0,
   },
   cabeza: {
@@ -623,7 +626,7 @@ const styles = StyleSheet.create({
     height: 28,
     borderRadius: 15,
     borderWidth: 3,
-    borderColor: '#E98975',
+    borderColor: '#FF9BAF',
     opacity: 0,
   },
   cuerpo: {
@@ -632,7 +635,7 @@ const styles = StyleSheet.create({
     top: 60,
     width: 4,
     height: 40,
-    backgroundColor: '#E98975',
+    backgroundColor: '#FF9BAF',
     opacity: 0,
   },
   brazoIzquierdo: {
@@ -641,7 +644,7 @@ const styles = StyleSheet.create({
     top: 66,
     width: 26,
     height: 4,
-    backgroundColor: '#E98975',
+    backgroundColor: '#FF9BAF',
     transform: [{ rotate: '-35deg' }],
     opacity: 0,
   },
@@ -651,7 +654,7 @@ const styles = StyleSheet.create({
     top: 66,
     width: 26,
     height: 4,
-    backgroundColor: '#E98975',
+    backgroundColor: '#FF9BAF',
     transform: [{ rotate: '35deg' }],
     opacity: 0,
   },
@@ -661,7 +664,7 @@ const styles = StyleSheet.create({
     top: 101,
     width: 29,
     height: 4,
-    backgroundColor: '#E98975',
+    backgroundColor: '#FF9BAF',
     transform: [{ rotate: '-48deg' }],
     opacity: 0,
   },
@@ -671,7 +674,7 @@ const styles = StyleSheet.create({
     top: 101,
     width: 29,
     height: 4,
-    backgroundColor: '#E98975',
+    backgroundColor: '#FF9BAF',
     transform: [{ rotate: '48deg' }],
     opacity: 0,
   },
@@ -683,7 +686,7 @@ const styles = StyleSheet.create({
     marginBottom: 17,
   },
   letraPalabra: {
-    color: '#F5F1E8',
+    color: '#F3FAFF',
     fontSize: 25,
     fontWeight: '900',
     minWidth: 18,
@@ -691,7 +694,7 @@ const styles = StyleSheet.create({
     marginHorizontal: 3,
   },
   intentos: {
-    color: '#C4CCC9',
+    color: '#A8B9D4',
     textAlign: 'center',
     marginBottom: 10,
   },
@@ -721,14 +724,14 @@ const styles = StyleSheet.create({
     marginBottom: 14,
   },
   perdiste: {
-    color: '#E98975',
+    color: '#FF9BAF',
     fontSize: 17,
     fontWeight: '800',
     textAlign: 'center',
     marginBottom: 14,
   },
   desbloqueo: {
-    color: '#E8B75A',
+    color: '#70E8FF',
     fontWeight: '800',
     textAlign: 'center',
     marginBottom: 8,

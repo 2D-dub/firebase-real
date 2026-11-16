@@ -4,7 +4,7 @@ import { COSMETICOS } from './tema';
 
 export default function Cabecera({ usuario, perfil }) {
   const color =
-    COSMETICOS.find((item) => item.id === perfil?.colorActivo)?.color || '#E8B75A';
+    COSMETICOS.find((item) => item.id === perfil?.colorActivo)?.color || '#70E8FF';
   const banner = COSMETICOS.find((item) => item.id === perfil?.bannerActivo);
   const nombre =
     perfil?.nombre?.trim() ||
@@ -56,12 +56,12 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    backgroundColor: '#182126',
+    backgroundColor: 'rgba(5, 12, 31, 0.98)',
     borderBottomWidth: 1,
-    borderBottomColor: '#53625F',
+    borderBottomColor: 'rgba(101, 218, 255, 0.28)',
   },
   marca: {
-    color: '#F5F1E8',
+    color: '#F3FAFF',
     fontSize: 16,
     fontWeight: '900',
     letterSpacing: 1.1,
@@ -71,7 +71,7 @@ const styles = StyleSheet.create({
     maxWidth: '54%',
   },
   etiqueta: {
-    color: '#AEB8B4',
+    color: '#8CA0C2',
     fontSize: 9,
     fontWeight: '700',
     letterSpacing: 1.1,
@@ -88,12 +88,12 @@ const styles = StyleSheet.create({
     textShadowOffset: { width: 0, height: 0 },
   },
   puntos: {
-    color: '#C4CCC9',
+    color: '#A8B9D4',
     fontSize: 10,
     marginTop: 1,
   },
   acceso: {
-    color: '#E8B75A',
+    color: '#70E8FF',
     fontSize: 10,
     fontWeight: '800',
     letterSpacing: 1,
