@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
-import { View, TextInput, Button, Text, StyleSheet, Alert } from 'react-native';
+import { View, TextInput, Button, Text, StyleSheet } from 'react-native';
 import { createUserWithEmailAndPassword } from 'firebase/auth';
 import { doc, setDoc } from 'firebase/firestore';
-import { auth, db } from '../../firebase/firebaseConfig';
+import { auth, db } from '../../firebase/config';
 import { useNavigation } from '@react-navigation/native';
+import avisar from '../avisar';
 
 export default function Registro() {
   const [nombre, setNombre] = useState('');
@@ -32,10 +33,9 @@ export default function Registro() {
         perdidos
       });
 
-      Alert.alert('Éxito', 'Usuario registrado correctamente');
-      navigation.navigate('Login'); // o a Home si prefieres
+      avisar('Éxito', 'Usuario registrado correctamente');
     } catch (error) {
-      Alert.alert('Error al registrarse', error.message);
+      avisar('Error al registrarse', error.message);
     }
   };
 

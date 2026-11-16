@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, TouchableOpacity, Image, StyleSheet, Alert, ActivityIndicator, ScrollView } from 'react-native';
 import { doc, getDoc, setDoc, updateDoc } from 'firebase/firestore';
-import { db, auth } from '../../firebase/firebaseConfig';
+import { db, auth } from '../../firebase/config';
 import { onAuthStateChanged } from 'firebase/auth';
 
 

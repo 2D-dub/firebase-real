@@ -2,7 +2,7 @@
 import React, { useEffect } from 'react';
 import { View, ActivityIndicator } from 'react-native';
 import { signOut } from 'firebase/auth';
-import { auth } from '../../firebase/firebaseConfig';
+import { auth } from '../../firebase/config';
 
 export default function Logout() {
   useEffect(() => {

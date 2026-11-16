@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
-import { View, TextInput, Button, Text, StyleSheet, Alert } from 'react-native';
+import { View, TextInput, Button, Text, StyleSheet } from 'react-native';
 import { signInWithEmailAndPassword } from 'firebase/auth';
-import { auth } from '../../firebase/firebaseConfig'; // Ajusta el path si es diferente
-//import { useNavigation } from '@react-navigation/native';}
+import { auth } from '../../firebase/config';
 import { useNavigation } from '@react-navigation/native';
+import avisar from '../avisar';
 
 
 export default function Login() {
@@ -15,7 +15,7 @@ export default function Login() {
     try {
       await signInWithEmailAndPassword(auth, correo, contrasena);
     } catch (error) {
-      Alert.alert('Error al iniciar sesión', error.message);
+      avisar('Error al iniciar sesión', error.message);
     }
   };
 
