@@ -1,11 +1,10 @@
 import React, { useState } from 'react';
 import { ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
-import { createUserWithEmailAndPassword } from 'firebase/auth';
+import { createUserWithEmailAndPassword, sendEmailVerification } from 'firebase/auth';
 import { auth } from '../../firebase/config';
 import asegurarPerfil from '../../firebase/perfiles';
 import { useNavigation } from '@react-navigation/native';
 import BotonBrillante from './BotonBrillante';
-import FondoEspacial from './FondoEspacial';
 import { ESTILO_CURSOR } from './tema';
 import avisar from '../avisar';
 
@@ -26,6 +25,7 @@ export default function Registro() {
 
     setEnviando(true);
     let cuentaCreada = false;
+    let perfilGuardado = false;
     try {
       const { user } = await createUserWithEmailAndPassword(auth, correo.trim(), contrasena);
       cuentaCreada = true;
@@ -34,14 +34,20 @@ export default function Registro() {
         fecha,
         telefono,
       });
+      perfilGuardado = true;
+      await sendEmailVerification(user);
 
-      avisar('¡Bienvenido!', 'Tu cuenta de entrenador está lista.');
+      avisar('Revisa tu correo', 'Te enviamos un enlace para verificar tu cuenta.');
     } catch (error) {
       if (cuentaCreada) {
-        console.error('La cuenta se creó, pero no se pudo guardar el perfil:', error);
+        console.error('La cuenta se creó, pero falló el perfil o el correo de verificación:', error);
       }
       avisar(
-        cuentaCreada ? 'La cuenta se creó, pero no se pudo guardar el perfil' : 'No se pudo crear la cuenta',
+        !cuentaCreada
+          ? 'No se pudo crear la cuenta'
+          : perfilGuardado
+            ? 'La cuenta se creó, pero no se pudo enviar el correo de verificación'
+            : 'La cuenta se creó, pero no se pudo guardar el perfil',
         error.message
       );
     } finally {
@@ -51,12 +57,10 @@ export default function Registro() {
 
   return (
     <View style={[styles.pantalla, ESTILO_CURSOR]}>
-      <FondoEspacial />
       <ScrollView contentContainerStyle={styles.contenido} keyboardShouldPersistTaps="handled">
         <View style={styles.tarjeta}>
-          <Text style={styles.insignia}>✦ NUEVO VIAJERO ✦</Text>
-          <Text style={styles.titulo}>Crea tu cuenta</Text>
-          <Text style={styles.descripcion}>Tu aventura y tus recompensas quedarán guardadas.</Text>
+          <Text style={styles.titulo}>Registrarse</Text>
+          <Text style={styles.descripcion}>Crea una cuenta para guardar tu progreso.</Text>
 
           <TextInput
             placeholder="Nombre de entrenador"
@@ -101,13 +105,13 @@ export default function Registro() {
           />
 
           <BotonBrillante
-            title={enviando ? 'Creando cuenta…' : 'Unirme a la aventura'}
+            title={enviando ? 'Registrando…' : 'Registrarse'}
             onPress={handleRegistro}
             disabled={enviando}
           />
           <Text style={styles.pie}>¿Ya tienes una cuenta?</Text>
           <BotonBrillante
-            title="Volver a iniciar sesión"
+            title="Iniciar sesión"
             variant="secondary"
             onPress={() => navigation.navigate('Login')}
           />
@@ -120,7 +124,7 @@ export default function Registro() {
 const styles = StyleSheet.create({
   pantalla: {
     flex: 1,
-    backgroundColor: '#050B18',
+    backgroundColor: '#182126',
   },
   contenido: {
     flexGrow: 1,
@@ -134,30 +138,22 @@ const styles = StyleSheet.create({
     padding: 25,
     borderRadius: 24,
     borderWidth: 1,
-    borderColor: 'rgba(112, 232, 255, 0.42)',
-    backgroundColor: 'rgba(8, 17, 40, 0.94)',
-    shadowColor: '#34DFFF',
+    borderColor: '#53625F',
+    backgroundColor: '#222F32',
+    shadowColor: '#000000',
     shadowOpacity: 0.2,
     shadowRadius: 24,
     shadowOffset: { width: 0, height: 8 },
     elevation: 7,
   },
-  insignia: {
-    color: '#70E8FF',
-    fontSize: 10,
-    fontWeight: '800',
-    letterSpacing: 2,
-    textAlign: 'center',
-    marginBottom: 10,
-  },
   titulo: {
-    color: '#F3FAFF',
+    color: '#F5F1E8',
     fontSize: 28,
     fontWeight: '900',
     textAlign: 'center',
   },
   descripcion: {
-    color: '#A8B9D4',
+    color: '#C4CCC9',
     fontSize: 13,
     textAlign: 'center',
     lineHeight: 20,
@@ -169,14 +165,14 @@ const styles = StyleSheet.create({
     paddingHorizontal: 14,
     marginBottom: 12,
     borderWidth: 1,
-    borderColor: '#293E62',
+    borderColor: '#53625F',
     borderRadius: 12,
-    backgroundColor: 'rgba(3, 10, 26, 0.92)',
-    color: '#F2FAFF',
+    backgroundColor: '#182126',
+    color: '#F5F1E8',
     fontSize: 14,
   },
   pie: {
-    color: '#A8B9D4',
+    color: '#C4CCC9',
     textAlign: 'center',
     fontSize: 13,
     marginTop: 20,

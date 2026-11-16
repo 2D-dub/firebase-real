@@ -1,76 +1,87 @@
 import React, { useEffect, useRef, useState } from 'react';
-import {
-  ActivityIndicator,
-  Image,
-  ScrollView,
-  StyleSheet,
-  Text,
-  View,
-} from 'react-native';
-import { auth, db } from '../../firebase/config';
+import { ActivityIndicator, Image, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { collection, doc, onSnapshot, runTransaction } from 'firebase/firestore';
+import { auth, db } from '../../firebase/config';
+import { contarLetras, normalizarPalabra, obtenerPeliculas, obtenerPokemones } from '../catalogos';
 import BotonBrillante from './BotonBrillante';
-import FondoEspacial from './FondoEspacial';
 import { ESTILO_CURSOR, PUNTOS_POR_DIFICULTAD } from './tema';
 import avisar from '../avisar';
 
 const ALFABETO = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('');
 const DIFICULTADES = {
-  facil: { nombre: 'Fácil', intentos: 8, premio: PUNTOS_POR_DIFICULTAD.facil },
-  medio: { nombre: 'Medio', intentos: 6, premio: PUNTOS_POR_DIFICULTAD.medio },
-  dificil: { nombre: 'Difícil', intentos: 5, premio: PUNTOS_POR_DIFICULTAD.dificil },
+  facil: { nombre: 'Fácil', premio: PUNTOS_POR_DIFICULTAD.facil, maxErrores: 10, maxLetras: 7 },
+  medio: { nombre: 'Medio', premio: PUNTOS_POR_DIFICULTAD.medio, maxErrores: 10, maxLetras: 13 },
+  dificil: { nombre: 'Difícil', premio: PUNTOS_POR_DIFICULTAD.dificil, maxErrores: 10, maxLetras: Infinity },
 };
+const PARTES_AHORCADO = [
+  'baseHorca',
+  'posteHorca',
+  'barraHorca',
+  'cuerdaHorca',
+  'cabeza',
+  'cuerpo',
+  'brazoIzquierdo',
+  'brazoDerecho',
+  'piernaIzquierda',
+  'piernaDerecha',
+];
 
-function cantidadLetras(nombre) {
-  return nombre.replace(/[^a-z]/g, '').length;
-}
-
-function obtenerId(url) {
-  return url.split('/').filter(Boolean).pop();
-}
-
-export default function Original() {
+export default function JuegoAhorcado({ navigation, route }) {
+  const modo = route?.params?.modo === 'peliculas' ? 'peliculas' : 'pokemon';
   const usuario = auth.currentUser;
-  const [pokemones, setPokemones] = useState([]);
+  const uid = usuario?.uid;
+  const esJuegoPeliculas = modo === 'peliculas';
+  const [contenidos, setContenidos] = useState([]);
   const [perfil, setPerfil] = useState(null);
   const [cargando, setCargando] = useState(true);
+  const [errorCarga, setErrorCarga] = useState('');
   const [dificultad, setDificultad] = useState('facil');
-  const [pokemon, setPokemon] = useState(null);
+  const [contenido, setContenido] = useState(null);
   const [letras, setLetras] = useState([]);
   const [fallos, setFallos] = useState(0);
   const [estado, setEstado] = useState('listo');
   const rondaGuardada = useRef(false);
-  const uid = usuario?.uid;
   const configuracion = DIFICULTADES[dificultad];
-  const palabra = pokemon?.name?.replace(/-/g, ' ').toUpperCase() || '';
-  const maxPartes = configuracion.intentos;
-  const partesDibujadas = pokemon
-    ? Math.min(6, Math.ceil((fallos * 6) / maxPartes))
-    : 0;
+  const palabra = contenido ? normalizarPalabra(contenido.nombre) : '';
+  const ganadas = Number(perfil?.ganados || 0);
+  const dificilGanadas = Number(perfil?.dificilesCompletados || 0);
+  const desbloqueadas = Array.isArray(perfil?.peliculasDesbloqueadas)
+    ? perfil.peliculasDesbloqueadas
+    : [];
+  const contenidosDisponibles = esJuegoPeliculas
+    ? contenidos.filter((item) => !desbloqueadas.includes(item.id))
+    : contenidos;
+  const contenidosDeDificultad = contenidosDisponibles.filter((item) => {
+    const longitud = contarLetras(item.nombre);
+    if (dificultad === 'facil') return longitud <= DIFICULTADES.facil.maxLetras;
+    if (dificultad === 'medio') {
+      return longitud > DIFICULTADES.facil.maxLetras &&
+        longitud <= DIFICULTADES.medio.maxLetras;
+    }
+    return longitud > DIFICULTADES.medio.maxLetras;
+  });
 
   useEffect(() => {
     let activa = true;
-    const cargarPokemones = async () => {
-      try {
-        const respuesta = await fetch('https://pokeapi.co/api/v2/pokemon?limit=1025');
-        if (!respuesta.ok) {
-          throw new Error(`PokeAPI respondió con estado ${respuesta.status}.`);
-        }
-        const datos = await respuesta.json();
-        if (activa) setPokemones(datos.results || []);
-      } catch (error) {
-        console.error('Error al cargar los Pokémon:', error);
-        avisar('No se pudo cargar el juego', error.message);
-      } finally {
+    const cargar = esJuegoPeliculas ? obtenerPeliculas : obtenerPokemones;
+    setCargando(true);
+    setErrorCarga('');
+    cargar()
+      .then((datos) => {
+        if (activa) setContenidos(datos);
+      })
+      .catch((error) => {
+        console.error('Error al cargar las opciones del ahorcado:', error);
+        if (activa) setErrorCarga(error.message);
+      })
+      .finally(() => {
         if (activa) setCargando(false);
-      }
-    };
+      });
 
-    cargarPokemones();
     return () => {
       activa = false;
     };
-  }, []);
+  }, [esJuegoPeliculas]);
 
   useEffect(() => {
     if (!uid) return undefined;
@@ -85,20 +96,14 @@ export default function Original() {
   }, [uid]);
 
   const iniciarPartida = () => {
-    const candidatos = pokemones.filter((item) => {
-      const longitud = cantidadLetras(item.name);
-      if (dificultad === 'facil') return longitud >= 3 && longitud <= 5;
-      if (dificultad === 'medio') return longitud >= 6 && longitud <= 7;
-      return longitud >= 8;
-    });
-
-    if (!candidatos.length) {
-      avisar('No hay Pokémon disponibles', 'Intenta iniciar la partida de nuevo.');
+    if (!contenidosDeDificultad.length) {
+      avisar('No hay palabras disponibles', 'Elige otra dificultad para iniciar una partida.');
       return;
     }
 
-    const elegido = candidatos[Math.floor(Math.random() * candidatos.length)];
-    setPokemon({ ...elegido, id: obtenerId(elegido.url) });
+    const elegido =
+      contenidosDeDificultad[Math.floor(Math.random() * contenidosDeDificultad.length)];
+    setContenido(elegido);
     setLetras([]);
     setFallos(0);
     rondaGuardada.current = false;
@@ -106,8 +111,8 @@ export default function Original() {
   };
 
   const guardarResultado = async (gano) => {
-    if (!uid || !pokemon) {
-      throw new Error('No se encontró la sesión del entrenador.');
+    if (!uid || !contenido) {
+      throw new Error('No se encontró la sesión del jugador.');
     }
 
     const usuarioRef = doc(db, 'usuarios', uid);
@@ -117,7 +122,7 @@ export default function Original() {
     await runTransaction(db, async (transaccion) => {
       const snapshot = await transaccion.get(usuarioRef);
       const datos = snapshot.exists() ? snapshot.data() : {};
-      const estadisticas = {
+      const actualizaciones = {
         uid,
         ganados: Number(datos.ganados || 0) + (gano ? 1 : 0),
         perdidos: Number(datos.perdidos || 0) + (gano ? 0 : 1),
@@ -127,15 +132,25 @@ export default function Original() {
           (gano && dificultad === 'dificil' ? 1 : 0),
       };
 
+      if (esJuegoPeliculas && gano) {
+        const idsDesbloqueados = Array.isArray(datos.peliculasDesbloqueadas)
+          ? datos.peliculasDesbloqueadas
+          : [];
+        actualizaciones.peliculasDesbloqueadas = idsDesbloqueados.includes(contenido.id)
+          ? idsDesbloqueados
+          : [...idsDesbloqueados, contenido.id];
+      }
+
       if (snapshot.exists()) {
-        transaccion.update(usuarioRef, estadisticas);
+        transaccion.update(usuarioRef, actualizaciones);
       } else {
         transaccion.set(usuarioRef, {
-          ...estadisticas,
-          nombre: usuario?.displayName || usuario?.email?.split('@')[0] || 'Entrenador',
+          ...actualizaciones,
+          nombre: usuario?.displayName || usuario?.email?.split('@')[0] || 'Jugador',
           correo: usuario?.email || '',
           coloresDesbloqueados: ['celeste'],
           bannersDesbloqueados: [],
+          peliculasDesbloqueadas: esJuegoPeliculas && gano ? [contenido.id] : [],
           colorActivo: 'celeste',
           bannerActivo: null,
         });
@@ -143,7 +158,9 @@ export default function Original() {
 
       transaccion.set(resultadoRef, {
         uid,
-        pokemon: pokemon.name,
+        modo,
+        contenidoId: contenido.id,
+        titulo: contenido.nombre,
         dificultad,
         gano,
         puntos: puntosGanados,
@@ -173,7 +190,7 @@ export default function Original() {
     if (!palabra.includes(letra)) {
       const nuevosFallos = fallos + 1;
       setFallos(nuevosFallos);
-      if (nuevosFallos >= maxPartes) await terminarPartida(false);
+      if (nuevosFallos >= configuracion.maxErrores) await terminarPartida(false);
       return;
     }
 
@@ -183,33 +200,53 @@ export default function Original() {
     if (completada) await terminarPartida(true);
   };
 
+  const tituloJuego = esJuegoPeliculas ? 'Ahorcado de películas' : 'Ahorcado de Pokémon';
+  const coleccionDesbloqueada =
+    esJuegoPeliculas &&
+    contenidos.length > 0 &&
+    contenidos.every((item) => desbloqueadas.includes(item.id));
+
   return (
     <View style={[styles.pantalla, ESTILO_CURSOR]}>
-      <FondoEspacial />
       <ScrollView contentContainerStyle={styles.contenido}>
         <View style={styles.encabezado}>
-          <Text style={styles.insignia}>DESAFÍO GALÁCTICO</Text>
-          <Text style={styles.titulo}>Ahorcado Pokémon</Text>
+          <Text style={styles.insignia}>JUEGO DE AHORCADO</Text>
+          <Text style={styles.titulo}>{tituloJuego}</Text>
           <Text style={styles.descripcion}>
-            Adivina el nombre antes de que se agoten tus intentos.
+            Adivina la palabra. Tienes 10 errores antes de completar el dibujo.
           </Text>
         </View>
 
         <View style={styles.resumen}>
-          <Text style={styles.dato}>✦ {Number(perfil?.puntos || 0)} puntos</Text>
-          <Text style={styles.dato}>Ganadas: {Number(perfil?.ganados || 0)}</Text>
-          <Text style={styles.dato}>
-            Difíciles: {Number(perfil?.dificilesCompletados || 0)}/15
-          </Text>
+          <Text style={styles.dato}>Puntos: {Number(perfil?.puntos || 0)}</Text>
+          <Text style={styles.dato}>Victorias: {ganadas}</Text>
+          <Text style={styles.dato}>Difíciles: {dificilGanadas}/15</Text>
         </View>
 
         <View style={styles.tarjeta}>
+          <View style={styles.acciones}>
+            <BotonBrillante
+              title="Cambiar juego"
+              compact
+              variant="secondary"
+              onPress={() => navigation.navigate('Home')}
+            />
+            {esJuegoPeliculas && (
+              <BotonBrillante
+                title="Películas existentes"
+                compact
+                variant="secondary"
+                onPress={() => navigation.navigate('ColeccionPeliculas')}
+              />
+            )}
+          </View>
+
           <Text style={styles.etiqueta}>ELIGE LA DIFICULTAD</Text>
           <View style={styles.dificultades}>
             {Object.entries(DIFICULTADES).map(([id, item]) => (
               <BotonBrillante
                 key={id}
-                title={`${item.nombre}\n${item.premio} pts`}
+                title={`${item.nombre}\n${item.premio} puntos`}
                 compact
                 variant={dificultad === id ? 'primary' : 'secondary'}
                 disabled={estado === 'jugando'}
@@ -221,51 +258,82 @@ export default function Original() {
           </View>
 
           {cargando ? (
-            <ActivityIndicator size="large" color="#70E8FF" style={styles.cargando} />
-          ) : !pokemon || estado === 'listo' ? (
+            <ActivityIndicator size="large" color="#E8B75A" style={styles.cargando} />
+          ) : errorCarga ? (
+            <View style={styles.inicio}>
+              <Text style={styles.error}>No se pudieron cargar las palabras: {errorCarga}</Text>
+              <BotonBrillante title="Reintentar" onPress={() => {
+                setErrorCarga('');
+                setCargando(true);
+                const cargar = esJuegoPeliculas ? obtenerPeliculas : obtenerPokemones;
+                cargar()
+                  .then(setContenidos)
+                  .catch((error) => setErrorCarga(error.message))
+                  .finally(() => setCargando(false));
+              }} />
+            </View>
+          ) : coleccionDesbloqueada && !contenido ? (
+            <View style={styles.inicio}>
+              <Text style={styles.resultadoCompletado}>
+                Ya desbloqueaste todas las películas.
+              </Text>
+              <BotonBrillante
+                title="Ver películas existentes"
+                onPress={() => navigation.navigate('ColeccionPeliculas')}
+              />
+            </View>
+          ) : !contenido || estado === 'listo' || estado === 'completado' ? (
             <View style={styles.inicio}>
               <Text style={styles.textoInicio}>
-                Fácil: 8 intentos · Medio: 6 · Difícil: 5
+                {esJuegoPeliculas
+                  ? `${contenidosDeDificultad.length} películas disponibles en esta dificultad.`
+                  : 'Adivina el nombre del Pokémon.'}
               </Text>
               <BotonBrillante
                 title="Iniciar partida"
                 onPress={iniciarPartida}
+                disabled={!perfil || !contenidosDeDificultad.length}
                 style={styles.botonInicio}
               />
             </View>
           ) : (
             <>
               <View style={styles.juego}>
-                <View style={styles.panelPokemon}>
-                  <Text style={styles.etiqueta}>POKÉMON #{pokemon.id}</Text>
-                  <Image
-                    source={{
-                      uri: `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/${pokemon.id}.png`,
-                    }}
-                    style={[styles.imagen, estado === 'jugando' && styles.imagenOculta]}
-                    accessibilityLabel={`Ilustración del Pokémon ${pokemon.name}`}
-                  />
-                  {estado === 'jugando' && (
+                <View style={styles.panelContenido}>
+                  <Text style={styles.etiqueta}>
+                    {esJuegoPeliculas ? 'PELÍCULA' : 'POKÉMON'}
+                  </Text>
+                  {contenido.imagen ? (
+                    <Image
+                      source={{ uri: contenido.imagen }}
+                      style={[styles.imagen, estado === 'jugando' && styles.imagenOculta]}
+                      accessibilityLabel={`Imagen de ${contenido.nombre}`}
+                    />
+                  ) : (
+                    <View style={styles.imagenVacia}>
+                      <Text style={styles.siluetaTexto}>?</Text>
+                    </View>
+                  )}
+                  {estado === 'jugando' && contenido.imagen && (
                     <View style={styles.silueta}>
                       <Text style={styles.siluetaTexto}>?</Text>
                     </View>
                   )}
                   {estado !== 'jugando' && (
-                    <Text style={styles.nombreRevelado}>{palabra}</Text>
+                    <Text style={styles.nombreRevelado}>{contenido.nombre}</Text>
                   )}
                 </View>
 
-                <View style={styles.ahorcado}>
-                  <View style={styles.baseHorca} />
-                  <View style={styles.posteHorca} />
-                  <View style={styles.barraHorca} />
-                  <View style={styles.cuerdaHorca} />
-                  <View style={[styles.cabeza, partesDibujadas < 1 && styles.oculto]} />
-                  <View style={[styles.cuerpo, partesDibujadas < 2 && styles.oculto]} />
-                  <View style={[styles.brazoIzquierdo, partesDibujadas < 3 && styles.oculto]} />
-                  <View style={[styles.brazoDerecho, partesDibujadas < 4 && styles.oculto]} />
-                  <View style={[styles.piernaIzquierda, partesDibujadas < 5 && styles.oculto]} />
-                  <View style={[styles.piernaDerecha, partesDibujadas < 6 && styles.oculto]} />
+                <View
+                  style={styles.ahorcado}
+                  accessibilityLabel={`Dibujo del ahorcado: ${fallos} de 10 errores`}
+                >
+                  {PARTES_AHORCADO.map((parte, index) => (
+                    <View
+                      key={parte}
+                      style={[styles[parte], index < fallos && styles.parteVisible]}
+                    />
+                  ))}
                 </View>
               </View>
 
@@ -283,9 +351,7 @@ export default function Original() {
 
               {estado === 'jugando' ? (
                 <>
-                  <Text style={styles.intentos}>
-                    Fallos: {fallos}/{maxPartes}
-                  </Text>
+                  <Text style={styles.intentos}>Errores: {fallos}/10</Text>
                   <View style={styles.teclado}>
                     {ALFABETO.map((letra) => (
                       <BotonBrillante
@@ -306,8 +372,13 @@ export default function Original() {
                   <Text style={estado === 'ganada' ? styles.ganaste : styles.perdiste}>
                     {estado === 'ganada'
                       ? `¡Correcto! Ganaste ${configuracion.premio} puntos.`
-                      : 'Se acabaron los intentos. ¡Intenta otra vez!'}
+                      : 'Se completó el dibujo. ¡Intenta otra vez!'}
                   </Text>
+                  {estado === 'ganada' && esJuegoPeliculas && (
+                    <Text style={styles.desbloqueo}>
+                      Desbloqueaste: {contenido.nombre}
+                    </Text>
+                  )}
                   <BotonBrillante
                     title="Jugar otra vez"
                     onPress={iniciarPartida}
@@ -326,7 +397,7 @@ export default function Original() {
 const styles = StyleSheet.create({
   pantalla: {
     flex: 1,
-    backgroundColor: '#050B18',
+    backgroundColor: '#182126',
   },
   contenido: {
     flexGrow: 1,
@@ -341,20 +412,20 @@ const styles = StyleSheet.create({
     marginBottom: 18,
   },
   insignia: {
-    color: '#70E8FF',
+    color: '#E8B75A',
     fontSize: 10,
     fontWeight: '800',
     letterSpacing: 2,
   },
   titulo: {
-    color: '#F3FAFF',
+    color: '#F5F1E8',
     fontSize: 30,
     fontWeight: '900',
     textAlign: 'center',
     marginTop: 5,
   },
   descripcion: {
-    color: '#A8B9D4',
+    color: '#C4CCC9',
     textAlign: 'center',
     marginTop: 7,
   },
@@ -368,11 +439,11 @@ const styles = StyleSheet.create({
     marginBottom: 14,
     borderRadius: 14,
     borderWidth: 1,
-    borderColor: 'rgba(112, 232, 255, 0.22)',
-    backgroundColor: 'rgba(7, 17, 40, 0.75)',
+    borderColor: '#53625F',
+    backgroundColor: '#222F32',
   },
   dato: {
-    color: '#BFEFFF',
+    color: '#F0D38B',
     fontSize: 13,
     fontWeight: '700',
     marginHorizontal: 8,
@@ -381,17 +452,20 @@ const styles = StyleSheet.create({
     width: '100%',
     maxWidth: 850,
     padding: 20,
-    borderRadius: 22,
+    borderRadius: 18,
     borderWidth: 1,
-    borderColor: 'rgba(112, 232, 255, 0.38)',
-    backgroundColor: 'rgba(8, 17, 40, 0.92)',
-    shadowColor: '#34DFFF',
-    shadowOpacity: 0.17,
-    shadowRadius: 23,
-    elevation: 6,
+    borderColor: '#53625F',
+    backgroundColor: '#222F32',
+  },
+  acciones: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    flexWrap: 'wrap',
+    gap: 8,
+    marginBottom: 16,
   },
   etiqueta: {
-    color: '#8DA6CB',
+    color: '#AEB8B4',
     fontSize: 10,
     fontWeight: '800',
     letterSpacing: 1.4,
@@ -405,7 +479,7 @@ const styles = StyleSheet.create({
     marginBottom: 18,
   },
   botonDificultad: {
-    minWidth: 104,
+    minWidth: 110,
     marginHorizontal: 5,
     marginBottom: 7,
   },
@@ -417,15 +491,28 @@ const styles = StyleSheet.create({
     paddingVertical: 28,
   },
   textoInicio: {
-    color: '#A8B9D4',
+    color: '#C4CCC9',
     textAlign: 'center',
     marginBottom: 18,
   },
   botonInicio: {
     minWidth: 190,
+    marginTop: 12,
   },
   cargando: {
     marginVertical: 42,
+  },
+  error: {
+    color: '#F0A5A5',
+    textAlign: 'center',
+    marginBottom: 16,
+  },
+  resultadoCompletado: {
+    color: '#D5DBD7',
+    fontSize: 16,
+    fontWeight: '700',
+    textAlign: 'center',
+    marginBottom: 10,
   },
   juego: {
     flexDirection: 'row',
@@ -434,7 +521,7 @@ const styles = StyleSheet.create({
     flexWrap: 'wrap',
     minHeight: 210,
   },
-  panelPokemon: {
+  panelContenido: {
     position: 'relative',
     alignItems: 'center',
     justifyContent: 'center',
@@ -449,6 +536,15 @@ const styles = StyleSheet.create({
   imagenOculta: {
     opacity: 0.12,
   },
+  imagenVacia: {
+    width: 112,
+    height: 112,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: 20,
+    borderRadius: 56,
+    backgroundColor: '#182126',
+  },
   silueta: {
     position: 'absolute',
     top: 43,
@@ -457,116 +553,126 @@ const styles = StyleSheet.create({
     borderRadius: 70,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: 'rgba(3, 10, 26, 0.76)',
+    backgroundColor: 'rgba(24, 33, 38, 0.82)',
     borderWidth: 1,
-    borderColor: '#456A9E',
+    borderColor: '#65736C',
   },
   siluetaTexto: {
-    color: '#70E8FF',
+    color: '#E8B75A',
     fontSize: 58,
     fontWeight: '900',
   },
   nombreRevelado: {
-    color: '#70E8FF',
+    color: '#E8B75A',
     fontSize: 13,
     fontWeight: '900',
-    letterSpacing: 1.2,
+    textAlign: 'center',
     marginTop: -4,
   },
   ahorcado: {
-    width: 140,
-    height: 150,
+    width: 160,
+    height: 170,
     position: 'relative',
-    marginHorizontal: 28,
+    marginHorizontal: 22,
+  },
+  parteVisible: {
+    opacity: 1,
   },
   baseHorca: {
     position: 'absolute',
     left: 8,
     bottom: 8,
-    width: 104,
-    height: 4,
+    width: 115,
+    height: 5,
     borderRadius: 3,
-    backgroundColor: '#70E8FF',
+    backgroundColor: '#E8B75A',
+    opacity: 0,
   },
   posteHorca: {
     position: 'absolute',
     left: 28,
-    bottom: 10,
-    width: 4,
-    height: 127,
-    backgroundColor: '#70E8FF',
+    bottom: 12,
+    width: 5,
+    height: 142,
+    backgroundColor: '#E8B75A',
+    opacity: 0,
   },
   barraHorca: {
     position: 'absolute',
-    left: 28,
-    top: 11,
-    width: 79,
-    height: 4,
-    backgroundColor: '#70E8FF',
+    left: 30,
+    top: 12,
+    width: 82,
+    height: 5,
+    backgroundColor: '#E8B75A',
+    opacity: 0,
   },
   cuerdaHorca: {
     position: 'absolute',
-    left: 103,
-    top: 12,
-    width: 3,
-    height: 19,
-    backgroundColor: '#70E8FF',
+    left: 108,
+    top: 14,
+    width: 4,
+    height: 22,
+    backgroundColor: '#E8B75A',
+    opacity: 0,
   },
   cabeza: {
     position: 'absolute',
-    left: 91,
-    top: 30,
-    width: 27,
-    height: 27,
+    left: 96,
+    top: 34,
+    width: 28,
+    height: 28,
     borderRadius: 15,
     borderWidth: 3,
-    borderColor: '#FF8DCB',
+    borderColor: '#E98975',
+    opacity: 0,
   },
   cuerpo: {
     position: 'absolute',
-    left: 103,
-    top: 56,
-    width: 3,
-    height: 39,
-    backgroundColor: '#FF8DCB',
+    left: 108,
+    top: 60,
+    width: 4,
+    height: 40,
+    backgroundColor: '#E98975',
+    opacity: 0,
   },
   brazoIzquierdo: {
     position: 'absolute',
-    left: 84,
-    top: 63,
-    width: 25,
-    height: 3,
-    backgroundColor: '#FF8DCB',
+    left: 88,
+    top: 66,
+    width: 26,
+    height: 4,
+    backgroundColor: '#E98975',
     transform: [{ rotate: '-35deg' }],
+    opacity: 0,
   },
   brazoDerecho: {
     position: 'absolute',
-    left: 101,
-    top: 63,
-    width: 25,
-    height: 3,
-    backgroundColor: '#FF8DCB',
+    left: 106,
+    top: 66,
+    width: 26,
+    height: 4,
+    backgroundColor: '#E98975',
     transform: [{ rotate: '35deg' }],
+    opacity: 0,
   },
   piernaIzquierda: {
     position: 'absolute',
-    left: 85,
-    top: 99,
-    width: 28,
-    height: 3,
-    backgroundColor: '#FF8DCB',
+    left: 88,
+    top: 101,
+    width: 29,
+    height: 4,
+    backgroundColor: '#E98975',
     transform: [{ rotate: '-48deg' }],
+    opacity: 0,
   },
   piernaDerecha: {
     position: 'absolute',
-    left: 100,
-    top: 99,
-    width: 28,
-    height: 3,
-    backgroundColor: '#FF8DCB',
+    left: 106,
+    top: 101,
+    width: 29,
+    height: 4,
+    backgroundColor: '#E98975',
     transform: [{ rotate: '48deg' }],
-  },
-  oculto: {
     opacity: 0,
   },
   palabra: {
@@ -577,15 +683,15 @@ const styles = StyleSheet.create({
     marginBottom: 17,
   },
   letraPalabra: {
-    color: '#F5FBFF',
-    fontSize: 26,
+    color: '#F5F1E8',
+    fontSize: 25,
     fontWeight: '900',
     minWidth: 18,
     textAlign: 'center',
     marginHorizontal: 3,
   },
   intentos: {
-    color: '#A8B9D4',
+    color: '#C4CCC9',
     textAlign: 'center',
     marginBottom: 10,
   },
@@ -608,17 +714,23 @@ const styles = StyleSheet.create({
     paddingTop: 12,
   },
   ganaste: {
-    color: '#90F6C8',
+    color: '#9AD5A8',
     fontSize: 17,
     fontWeight: '800',
     textAlign: 'center',
     marginBottom: 14,
   },
   perdiste: {
-    color: '#FF9BAF',
+    color: '#E98975',
     fontSize: 17,
     fontWeight: '800',
     textAlign: 'center',
     marginBottom: 14,
+  },
+  desbloqueo: {
+    color: '#E8B75A',
+    fontWeight: '800',
+    textAlign: 'center',
+    marginBottom: 8,
   },
 });

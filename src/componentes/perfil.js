@@ -3,7 +3,6 @@ import { ActivityIndicator, ScrollView, StyleSheet, Text, TextInput, View } from
 import { auth, db } from '../../firebase/config';
 import { doc, onSnapshot, updateDoc } from 'firebase/firestore';
 import BotonBrillante from './BotonBrillante';
-import FondoEspacial from './FondoEspacial';
 import { ESTILO_CURSOR } from './tema';
 import avisar from '../avisar';
 
@@ -63,14 +62,13 @@ export default function Perfil() {
 
   return (
     <View style={[styles.pantalla, ESTILO_CURSOR]}>
-      <FondoEspacial />
       <ScrollView contentContainerStyle={styles.contenido}>
         <View style={styles.tarjeta}>
-          <Text style={styles.insignia}>TU IDENTIDAD GALÁCTICA</Text>
-          <Text style={styles.titulo}>Perfil de entrenador</Text>
+          <Text style={styles.insignia}>MI CUENTA</Text>
+          <Text style={styles.titulo}>Perfil</Text>
 
           {cargando ? (
-            <ActivityIndicator size="large" color="#70E8FF" style={styles.cargando} />
+            <ActivityIndicator size="large" color="#E8B75A" style={styles.cargando} />
           ) : !perfil ? (
             <Text style={styles.error}>No encontramos el perfil asociado a esta cuenta.</Text>
           ) : (
@@ -133,7 +131,7 @@ export default function Perfil() {
 const styles = StyleSheet.create({
   pantalla: {
     flex: 1,
-    backgroundColor: '#050B18',
+    backgroundColor: '#182126',
   },
   contenido: {
     flexGrow: 1,
@@ -147,18 +145,18 @@ const styles = StyleSheet.create({
     padding: 24,
     borderRadius: 22,
     borderWidth: 1,
-    borderColor: 'rgba(112, 232, 255, 0.38)',
-    backgroundColor: 'rgba(8, 17, 40, 0.94)',
+    borderColor: '#53625F',
+    backgroundColor: '#222F32',
   },
   insignia: {
-    color: '#70E8FF',
+    color: '#E8B75A',
     fontSize: 10,
     fontWeight: '800',
     letterSpacing: 1.8,
     textAlign: 'center',
   },
   titulo: {
-    color: '#F3FAFF',
+    color: '#F5F1E8',
     fontSize: 25,
     fontWeight: '900',
     textAlign: 'center',
@@ -171,25 +169,25 @@ const styles = StyleSheet.create({
     paddingVertical: 14,
     marginBottom: 20,
     borderRadius: 14,
-    backgroundColor: 'rgba(3, 10, 26, 0.82)',
+    backgroundColor: '#1B272A',
   },
   estadistica: {
     alignItems: 'center',
   },
   valor: {
-    color: '#70E8FF',
+    color: '#E8B75A',
     fontSize: 20,
     fontWeight: '900',
   },
   etiquetaEstadistica: {
-    color: '#8296B8',
+    color: '#AEB8B4',
     fontSize: 9,
     fontWeight: '800',
     letterSpacing: 1,
     marginTop: 3,
   },
   etiqueta: {
-    color: '#8DA6CB',
+    color: '#AEB8B4',
     fontSize: 10,
     fontWeight: '800',
     letterSpacing: 1.2,
@@ -200,16 +198,16 @@ const styles = StyleSheet.create({
     paddingHorizontal: 13,
     marginBottom: 15,
     borderWidth: 1,
-    borderColor: '#293E62',
+    borderColor: '#53625F',
     borderRadius: 12,
-    backgroundColor: 'rgba(3, 10, 26, 0.92)',
-    color: '#F2FAFF',
+    backgroundColor: '#1B272A',
+    color: '#F5F1E8',
   },
   cargando: {
     marginVertical: 35,
   },
   error: {
-    color: '#FF9BAF',
+    color: '#E98975',
     textAlign: 'center',
     padding: 20,
   },

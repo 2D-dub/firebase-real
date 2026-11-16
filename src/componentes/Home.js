@@ -1,68 +1,39 @@
-import React, { useEffect, useState } from 'react';
-import { ActivityIndicator, Image, ScrollView, StyleSheet, Text, View } from 'react-native';
-import FondoEspacial from './FondoEspacial';
-import avisar from '../avisar';
+import React from 'react';
+import { ScrollView, StyleSheet, Text, View } from 'react-native';
+import BotonBrillante from './BotonBrillante';
+import { ESTILO_CURSOR } from './tema';
 
-export default function Home() {
-  const [pokemones, setPokemones] = useState([]);
-  const [cargando, setCargando] = useState(true);
-
-  useEffect(() => {
-    let activa = true;
-    const obtenerDatos = async () => {
-      try {
-        const respuesta = await fetch('https://pokeapi.co/api/v2/pokemon?limit=1025');
-        if (!respuesta.ok) {
-          throw new Error(`PokeAPI respondió con estado ${respuesta.status}.`);
-        }
-        const datos = await respuesta.json();
-        if (activa) setPokemones(datos.results || []);
-      } catch (error) {
-        console.error('Error al cargar la Pokédex:', error);
-        avisar('No se pudo cargar la Pokédex', error.message);
-      } finally {
-        if (activa) setCargando(false);
-      }
-    };
-
-    obtenerDatos();
-    return () => {
-      activa = false;
-    };
-  }, []);
-
+export default function Home({ navigation }) {
   return (
-    <View style={styles.pantalla}>
-      <FondoEspacial />
+    <View style={[styles.pantalla, ESTILO_CURSOR]}>
       <ScrollView contentContainerStyle={styles.contenido}>
-        <Text style={styles.insignia}>EXPLORA LA GALAXIA</Text>
-        <Text style={styles.titulo}>Pokédex</Text>
-        <Text style={styles.descripcion}>
-          Conoce a los Pokémon que puedes encontrar en tu aventura.
-        </Text>
+        <View style={styles.encabezado}>
+          <Text style={styles.titulo}>¿Quieres jugar?</Text>
+          <Text style={styles.descripcion}>Elige el tema del ahorcado.</Text>
+        </View>
 
-        {cargando ? (
-          <ActivityIndicator size="large" color="#70E8FF" style={styles.cargando} />
-        ) : (
-          <View style={styles.lista}>
-            {pokemones.map((pokemon) => {
-              const id = pokemon.url.split('/').filter(Boolean).pop();
-              return (
-                <View key={pokemon.name} style={styles.tarjeta}>
-                  <Text style={styles.numero}>#{id}</Text>
-                  <Image
-                    source={{
-                      uri: `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/${id}.png`,
-                    }}
-                    style={styles.imagen}
-                    accessibilityLabel={`Imagen de ${pokemon.name}`}
-                  />
-                  <Text style={styles.nombre}>{pokemon.name}</Text>
-                </View>
-              );
-            })}
+        <View style={styles.opciones}>
+          <View style={styles.tarjeta}>
+            <Text style={styles.icono}>P</Text>
+            <Text style={styles.nombre}>Pokédex</Text>
+            <Text style={styles.descripcionTarjeta}>Adivina nombres de Pokémon.</Text>
+            <BotonBrillante
+              title="Jugar Pokémon"
+              onPress={() => navigation.navigate('JuegoPokemon')}
+            />
           </View>
-        )}
+
+          <View style={styles.tarjeta}>
+            <Text style={styles.icono}>F</Text>
+            <Text style={styles.nombre}>Películas</Text>
+            <Text style={styles.descripcionTarjeta}>Adivina títulos de Studio Ghibli.</Text>
+            <BotonBrillante
+              title="Jugar películas"
+              variant="secondary"
+              onPress={() => navigation.navigate('JuegoPeliculas')}
+            />
+          </View>
+        </View>
       </ScrollView>
     </View>
   );
@@ -71,69 +42,63 @@ export default function Home() {
 const styles = StyleSheet.create({
   pantalla: {
     flex: 1,
-    backgroundColor: '#050B18',
+    backgroundColor: '#182126',
   },
   contenido: {
     flexGrow: 1,
     alignItems: 'center',
-    padding: 18,
-    paddingBottom: 30,
+    justifyContent: 'center',
+    padding: 22,
   },
-  insignia: {
-    color: '#70E8FF',
-    fontSize: 10,
-    fontWeight: '800',
-    letterSpacing: 2,
+  encabezado: {
+    alignItems: 'center',
+    marginBottom: 26,
   },
   titulo: {
-    color: '#F3FAFF',
-    fontSize: 30,
+    color: '#F5F1E8',
+    fontSize: 34,
     fontWeight: '900',
-    marginTop: 4,
+    textAlign: 'center',
   },
   descripcion: {
-    color: '#A8B9D4',
+    color: '#C4CCC9',
     textAlign: 'center',
-    marginTop: 6,
-    marginBottom: 15,
+    marginTop: 8,
   },
-  lista: {
+  opciones: {
     width: '100%',
-    maxWidth: 1050,
+    maxWidth: 850,
     flexDirection: 'row',
     flexWrap: 'wrap',
     justifyContent: 'center',
   },
   tarjeta: {
-    width: 145,
-    minHeight: 178,
+    width: 320,
+    minHeight: 260,
     alignItems: 'center',
     justifyContent: 'center',
-    padding: 11,
-    margin: 6,
-    borderRadius: 16,
+    padding: 24,
+    margin: 10,
+    borderRadius: 18,
     borderWidth: 1,
-    borderColor: 'rgba(112, 232, 255, 0.22)',
-    backgroundColor: 'rgba(8, 17, 40, 0.9)',
+    borderColor: '#53625F',
+    backgroundColor: '#222F32',
   },
-  numero: {
-    alignSelf: 'flex-start',
-    color: '#8296B8',
-    fontSize: 10,
-    fontWeight: '700',
-  },
-  imagen: {
-    width: 108,
-    height: 108,
-    resizeMode: 'contain',
+  icono: {
+    color: '#E8B75A',
+    fontSize: 42,
+    fontWeight: '900',
+    marginBottom: 8,
   },
   nombre: {
-    color: '#E8F7FF',
-    fontSize: 13,
+    color: '#F5F1E8',
+    fontSize: 23,
     fontWeight: '800',
-    textTransform: 'capitalize',
+    marginBottom: 5,
   },
-  cargando: {
-    marginTop: 60,
+  descripcionTarjeta: {
+    color: '#C4CCC9',
+    textAlign: 'center',
+    marginBottom: 18,
   },
 });

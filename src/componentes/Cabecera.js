@@ -4,7 +4,7 @@ import { COSMETICOS } from './tema';
 
 export default function Cabecera({ usuario, perfil }) {
   const color =
-    COSMETICOS.find((item) => item.id === perfil?.colorActivo)?.color || '#70E8FF';
+    COSMETICOS.find((item) => item.id === perfil?.colorActivo)?.color || '#E8B75A';
   const banner = COSMETICOS.find((item) => item.id === perfil?.bannerActivo);
   const nombre =
     perfil?.nombre?.trim() ||
@@ -24,12 +24,11 @@ export default function Cabecera({ usuario, perfil }) {
       ]}
     >
       <View>
-        <Text style={styles.marca}>✦ COSMOS POKÉ ✦</Text>
-        <Text style={styles.subtitulo}>TU AVENTURA GALÁCTICA</Text>
+        <Text style={styles.marca}>JUEGO DE AHORCADO</Text>
       </View>
       {usuario ? (
         <View style={styles.usuario}>
-          <Text style={styles.etiqueta}>ENTRENADOR</Text>
+          <Text style={styles.etiqueta}>JUGADOR</Text>
           <Text
             numberOfLines={1}
             style={[
@@ -38,14 +37,12 @@ export default function Cabecera({ usuario, perfil }) {
               doradoActivo && styles.nombreDorado,
             ]}
           >
-            {doradoActivo ? '✦ ' : ''}
             {nombre}
-            {doradoActivo ? ' ✦' : ''}
           </Text>
           <Text style={styles.puntos}>{Number(perfil?.puntos || 0)} puntos</Text>
         </View>
       ) : (
-        <Text style={styles.acceso}>INICIA TU VIAJE</Text>
+        <Text style={styles.acceso}>INICIA SESIÓN</Text>
       )}
     </View>
   );
@@ -53,35 +50,28 @@ export default function Cabecera({ usuario, perfil }) {
 
 const styles = StyleSheet.create({
   contenedor: {
-    minHeight: 74,
+    minHeight: 64,
     paddingHorizontal: 18,
     paddingVertical: 10,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    backgroundColor: 'rgba(5, 12, 31, 0.96)',
+    backgroundColor: '#182126',
     borderBottomWidth: 1,
-    borderBottomColor: 'rgba(101, 218, 255, 0.3)',
+    borderBottomColor: '#53625F',
   },
   marca: {
-    color: '#C6F7FF',
+    color: '#F5F1E8',
     fontSize: 16,
     fontWeight: '900',
-    letterSpacing: 1.5,
-  },
-  subtitulo: {
-    color: '#7792B7',
-    fontSize: 9,
-    fontWeight: '700',
-    letterSpacing: 1.6,
-    marginTop: 3,
+    letterSpacing: 1.1,
   },
   usuario: {
     alignItems: 'flex-end',
     maxWidth: '54%',
   },
   etiqueta: {
-    color: '#8096B9',
+    color: '#AEB8B4',
     fontSize: 9,
     fontWeight: '700',
     letterSpacing: 1.1,
@@ -98,12 +88,12 @@ const styles = StyleSheet.create({
     textShadowOffset: { width: 0, height: 0 },
   },
   puntos: {
-    color: '#9AB2D6',
+    color: '#C4CCC9',
     fontSize: 10,
     marginTop: 1,
   },
   acceso: {
-    color: '#70E8FF',
+    color: '#E8B75A',
     fontSize: 10,
     fontWeight: '800',
     letterSpacing: 1,

@@ -3,7 +3,6 @@ import { ScrollView, StyleSheet, Text, View } from 'react-native';
 import { doc, onSnapshot, runTransaction } from 'firebase/firestore';
 import { auth, db } from '../../firebase/config';
 import BotonBrillante from './BotonBrillante';
-import FondoEspacial from './FondoEspacial';
 import { COSMETICOS, ESTILO_CURSOR } from './tema';
 import avisar from '../avisar';
 
@@ -94,16 +93,15 @@ export default function Tienda() {
 
   return (
     <View style={[styles.pantalla, ESTILO_CURSOR]}>
-      <FondoEspacial />
       <ScrollView contentContainerStyle={styles.contenido}>
         <Text style={styles.insignia}>RECOMPENSAS DE ENTRENADOR</Text>
-        <Text style={styles.titulo}>Tienda galáctica</Text>
+        <Text style={styles.titulo}>Tienda de recompensas</Text>
         <Text style={styles.descripcion}>
           Canjea tus puntos por colores y banners para tu nombre.
         </Text>
 
         <View style={styles.resumen}>
-          <Text style={styles.puntos}>✦ {Number(perfil?.puntos || 0)} puntos</Text>
+          <Text style={styles.puntos}>Puntos: {Number(perfil?.puntos || 0)}</Text>
           <Text style={styles.progreso}>
             Difíciles ganados: {Number(perfil?.dificilesCompletados || 0)}/15
           </Text>
@@ -197,7 +195,7 @@ export default function Tienda() {
 const styles = StyleSheet.create({
   pantalla: {
     flex: 1,
-    backgroundColor: '#050B18',
+    backgroundColor: '#182126',
   },
   contenido: {
     flexGrow: 1,
@@ -206,21 +204,21 @@ const styles = StyleSheet.create({
     paddingBottom: 34,
   },
   insignia: {
-    color: '#70E8FF',
+    color: '#E8B75A',
     fontSize: 10,
     fontWeight: '800',
     letterSpacing: 2,
     textAlign: 'center',
   },
   titulo: {
-    color: '#F3FAFF',
+    color: '#F5F1E8',
     fontSize: 30,
     fontWeight: '900',
     textAlign: 'center',
     marginTop: 5,
   },
   descripcion: {
-    color: '#A8B9D4',
+    color: '#C4CCC9',
     textAlign: 'center',
     marginTop: 7,
     marginBottom: 17,
@@ -235,16 +233,16 @@ const styles = StyleSheet.create({
     marginBottom: 16,
     borderRadius: 14,
     borderWidth: 1,
-    borderColor: 'rgba(112, 232, 255, 0.25)',
-    backgroundColor: 'rgba(7, 17, 40, 0.84)',
+    borderColor: '#53625F',
+    backgroundColor: '#222F32',
   },
   puntos: {
-    color: '#70E8FF',
+    color: '#E8B75A',
     fontWeight: '900',
     fontSize: 16,
   },
   progreso: {
-    color: '#BCD0EA',
+    color: '#C4CCC9',
     fontSize: 13,
     alignSelf: 'center',
   },
@@ -261,8 +259,8 @@ const styles = StyleSheet.create({
     margin: 7,
     borderRadius: 18,
     borderWidth: 1,
-    borderColor: 'rgba(112, 232, 255, 0.25)',
-    backgroundColor: 'rgba(8, 17, 40, 0.93)',
+    borderColor: '#53625F',
+    backgroundColor: '#222F32',
   },
   muestra: {
     height: 65,
@@ -271,8 +269,8 @@ const styles = StyleSheet.create({
     marginBottom: 13,
     borderRadius: 13,
     borderWidth: 1,
-    borderColor: '#70E8FF',
-    backgroundColor: 'rgba(3, 10, 26, 0.9)',
+    borderColor: '#E8B75A',
+    backgroundColor: '#1B272A',
     shadowOpacity: 0.45,
     shadowRadius: 11,
   },
@@ -283,10 +281,10 @@ const styles = StyleSheet.create({
     shadowRadius: 18,
   },
   nombreMuestra: {
-    color: '#70E8FF',
+    color: '#E8B75A',
     fontSize: 18,
     fontWeight: '900',
-    textShadowColor: '#70E8FF',
+    textShadowColor: '#E8B75A',
     textShadowOffset: { width: 0, height: 0 },
     textShadowRadius: 8,
   },
@@ -296,25 +294,25 @@ const styles = StyleSheet.create({
     textShadowRadius: 15,
   },
   etiquetaMuestra: {
-    color: '#CBD9EF',
+    color: '#D5DBD7',
     fontSize: 8,
     fontWeight: '900',
     letterSpacing: 1.4,
   },
   nombreItem: {
-    color: '#F3FAFF',
+    color: '#F5F1E8',
     fontSize: 16,
     fontWeight: '800',
   },
   textoItem: {
     minHeight: 38,
-    color: '#A8B9D4',
+    color: '#C4CCC9',
     fontSize: 12,
     lineHeight: 18,
     marginTop: 4,
   },
   precio: {
-    color: '#83F0FF',
+    color: '#F0D38B',
     fontSize: 13,
     fontWeight: '800',
     marginVertical: 9,
@@ -329,7 +327,7 @@ const styles = StyleSheet.create({
   },
   nota: {
     maxWidth: 700,
-    color: '#8096B9',
+    color: '#AEB8B4',
     fontSize: 11,
     textAlign: 'center',
     marginTop: 17,

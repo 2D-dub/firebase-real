@@ -10,14 +10,15 @@ import { auth, db } from './firebase/config';
 
 import BotonBrillante from './src/componentes/BotonBrillante';
 import Cabecera from './src/componentes/Cabecera';
-import FondoEspacial from './src/componentes/FondoEspacial';
+import ColeccionPeliculas from './src/componentes/ColeccionPeliculas';
 import Home from './src/componentes/Home';
+import JuegoAhorcado from './src/componentes/JuegoAhorcado';
 import Login from './src/componentes/Login';
 import Logout from './src/componentes/Logout';
-import Original from './src/componentes/Original';
 import Perfil from './src/componentes/perfil';
 import Registro from './src/componentes/Registro';
 import Tienda from './src/componentes/Tienda';
+import VerificarCorreo from './src/componentes/VerificarCorreo';
 import { ESTILO_CURSOR } from './src/componentes/tema';
 import avisar from './src/avisar';
 
@@ -27,22 +28,24 @@ export default function App() {
   const [usuario, setUsuario] = useState(null);
   const [perfil, setPerfil] = useState(null);
   const [cargando, setCargando] = useState(true);
+  const [correoVerificado, setCorreoVerificado] = useState(false);
   const [perfilCargando, setPerfilCargando] = useState(false);
   const [errorPerfil, setErrorPerfil] = useState('');
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
       setUsuario(user);
+      setCorreoVerificado(Boolean(user?.emailVerified));
       setPerfil(null);
       setErrorPerfil('');
-      setPerfilCargando(Boolean(user));
+      setPerfilCargando(Boolean(user?.emailVerified));
       setCargando(false);
     });
     return unsubscribe;
   }, []);
 
   useEffect(() => {
-    if (!usuario) {
+    if (!usuario || !correoVerificado) {
       setPerfil(null);
       setPerfilCargando(false);
       setErrorPerfil('');
@@ -76,13 +79,12 @@ export default function App() {
       clearTimeout(timeout);
       unsubscribe();
     };
-  }, [usuario]);
+  }, [usuario, correoVerificado]);
 
-  if (cargando || (usuario && perfilCargando)) {
+  if (cargando || (usuario && correoVerificado && perfilCargando)) {
     return (
       <View style={styles.cargando}>
-        <FondoEspacial />
-        <ActivityIndicator size="large" color="#70E8FF" />
+        <ActivityIndicator size="large" color="#E8B75A" />
       </View>
     );
   }
@@ -102,44 +104,62 @@ export default function App() {
         style={[styles.aplicacion, ESTILO_CURSOR]}
         edges={['top', 'left', 'right']}
       >
-        <FondoEspacial />
         <StatusBar style="light" />
-        {usuario && errorPerfil ? (
+        <Cabecera usuario={usuario} perfil={perfil} />
+        {usuario && !correoVerificado ? (
+          <VerificarCorreo
+            correo={usuario.email}
+            onVerificado={() => setCorreoVerificado(true)}
+          />
+        ) : usuario && errorPerfil ? (
           <View style={styles.errorPerfil}>
             <Text style={styles.tituloError}>No se pudo cargar tu perfil</Text>
             <Text style={styles.mensajeError}>{errorPerfil}</Text>
             <BotonBrillante title="Cerrar sesión" onPress={cerrarSesion} />
           </View>
         ) : (
-          <>
-            <Cabecera usuario={usuario} perfil={perfil} />
-            <NavigationContainer>
-              <Tab.Navigator
-                screenOptions={{
-                  headerShown: false,
-                  tabBarActiveTintColor: '#70E8FF',
-                  tabBarInactiveTintColor: '#8CA0C2',
-                  tabBarLabelStyle: styles.etiquetaPestana,
-                  tabBarStyle: styles.barPestanas,
-                }}
-              >
-                {usuario ? (
-                  <>
-                    <Tab.Screen name="Home" component={Home} options={{ tabBarLabel: 'Pokédex' }} />
-                    <Tab.Screen name="Original" component={Original} options={{ tabBarLabel: 'Ahorcado' }} />
-                    <Tab.Screen name="Tienda" component={Tienda} options={{ tabBarLabel: 'Tienda' }} />
-                    <Tab.Screen name="Perfil" component={Perfil} options={{ tabBarLabel: 'Perfil' }} />
-                    <Tab.Screen name="Logout" component={Logout} options={{ tabBarLabel: 'Salir' }} />
-                  </>
-                ) : (
-                  <>
-                    <Tab.Screen name="Login" component={Login} options={{ tabBarLabel: 'Iniciar sesión' }} />
-                    <Tab.Screen name="Registro" component={Registro} options={{ tabBarLabel: 'Crear cuenta' }} />
-                  </>
-                )}
-              </Tab.Navigator>
-            </NavigationContainer>
-          </>
+          <NavigationContainer>
+            <Tab.Navigator
+              screenOptions={{
+                headerShown: false,
+                tabBarActiveTintColor: '#E8B75A',
+                tabBarInactiveTintColor: '#AEB8B4',
+                tabBarLabelStyle: styles.etiquetaPestana,
+                tabBarStyle: styles.barPestanas,
+              }}
+            >
+              {usuario ? (
+                <>
+                  <Tab.Screen name="Home" component={Home} options={{ tabBarLabel: 'Jugar' }} />
+                  <Tab.Screen
+                    name="JuegoPokemon"
+                    component={JuegoAhorcado}
+                    initialParams={{ modo: 'pokemon' }}
+                    options={{ tabBarButton: () => null }}
+                  />
+                  <Tab.Screen
+                    name="JuegoPeliculas"
+                    component={JuegoAhorcado}
+                    initialParams={{ modo: 'peliculas' }}
+                    options={{ tabBarButton: () => null }}
+                  />
+                  <Tab.Screen
+                    name="ColeccionPeliculas"
+                    component={ColeccionPeliculas}
+                    options={{ tabBarButton: () => null }}
+                  />
+                  <Tab.Screen name="Tienda" component={Tienda} options={{ tabBarLabel: 'Tienda' }} />
+                  <Tab.Screen name="Perfil" component={Perfil} options={{ tabBarLabel: 'Perfil' }} />
+                  <Tab.Screen name="Logout" component={Logout} options={{ tabBarLabel: 'Salir' }} />
+                </>
+              ) : (
+                <>
+                  <Tab.Screen name="Login" component={Login} options={{ tabBarLabel: 'Iniciar sesión' }} />
+                  <Tab.Screen name="Registro" component={Registro} options={{ tabBarLabel: 'Registrarse' }} />
+                </>
+              )}
+            </Tab.Navigator>
+          </NavigationContainer>
         )}
       </SafeAreaView>
     </SafeAreaProvider>
@@ -149,13 +169,13 @@ export default function App() {
 const styles = StyleSheet.create({
   aplicacion: {
     flex: 1,
-    backgroundColor: '#050B18',
+    backgroundColor: '#182126',
   },
   cargando: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#050B18',
+    backgroundColor: '#182126',
   },
   errorPerfil: {
     flex: 1,
@@ -164,14 +184,14 @@ const styles = StyleSheet.create({
     padding: 28,
   },
   tituloError: {
-    color: '#F3FAFF',
+    color: '#F5F1E8',
     fontSize: 22,
     fontWeight: '900',
     textAlign: 'center',
     marginBottom: 10,
   },
   mensajeError: {
-    color: '#FFB7C7',
+    color: '#E98975',
     fontSize: 14,
     textAlign: 'center',
     marginBottom: 20,
@@ -181,8 +201,8 @@ const styles = StyleSheet.create({
     fontWeight: '700',
   },
   barPestanas: {
-    backgroundColor: 'rgba(5, 12, 31, 0.98)',
-    borderTopColor: 'rgba(101, 218, 255, 0.28)',
+    backgroundColor: '#182126',
+    borderTopColor: '#53625F',
     height: 62,
     paddingTop: 6,
     paddingBottom: 5,

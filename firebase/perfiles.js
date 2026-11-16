@@ -30,6 +30,7 @@ export default async function asegurarPerfil(usuario, datosIniciales = {}) {
       dificilesCompletados: 0,
       coloresDesbloqueados: ['celeste'],
       bannersDesbloqueados: [],
+      peliculasDesbloqueadas: [],
       colorActivo: 'celeste',
       bannerActivo: null,
     };

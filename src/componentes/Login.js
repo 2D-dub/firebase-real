@@ -1,11 +1,10 @@
 import React, { useState } from 'react';
 import { ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
-import { signInWithEmailAndPassword } from 'firebase/auth';
+import { sendEmailVerification, signInWithEmailAndPassword } from 'firebase/auth';
 import { auth } from '../../firebase/config';
 import asegurarPerfil from '../../firebase/perfiles';
 import { useNavigation } from '@react-navigation/native';
 import BotonBrillante from './BotonBrillante';
-import FondoEspacial from './FondoEspacial';
 import { ESTILO_CURSOR } from './tema';
 import avisar from '../avisar';
 
@@ -23,18 +22,26 @@ export default function Login() {
 
     setEnviando(true);
     let sesionIniciada = false;
+    let perfilAsegurado = false;
     try {
       const { user } = await signInWithEmailAndPassword(auth, correo.trim(), contrasena);
       sesionIniciada = true;
       await asegurarPerfil(user);
+      perfilAsegurado = true;
+      if (!user.emailVerified) {
+        await sendEmailVerification(user);
+        avisar('Verifica tu correo', 'Te enviamos un enlace para activar tu cuenta.');
+      }
     } catch (error) {
-      if (sesionIniciada) {
+      if (sesionIniciada && !perfilAsegurado) {
         console.error('Sesión iniciada, pero no se pudo cargar el perfil:', error);
       }
       avisar(
-        sesionIniciada
-          ? 'Sesión iniciada, pero no se pudo cargar el perfil'
-          : 'No se pudo iniciar sesión',
+        !sesionIniciada
+          ? 'No se pudo iniciar sesión'
+          : perfilAsegurado
+            ? 'No se pudo enviar el correo de verificación'
+            : 'Sesión iniciada, pero no se pudo cargar el perfil',
         error.message
       );
     } finally {
@@ -44,14 +51,10 @@ export default function Login() {
 
   return (
     <View style={[styles.pantalla, ESTILO_CURSOR]}>
-      <FondoEspacial />
       <ScrollView contentContainerStyle={styles.contenido} keyboardShouldPersistTaps="handled">
         <View style={styles.tarjeta}>
-          <Text style={styles.insignia}>✦ PORTAL DE ENTRENADORES ✦</Text>
-          <Text style={styles.titulo}>Vuelve a las estrellas</Text>
-          <Text style={styles.descripcion}>
-            Inicia sesión para continuar tu aventura Pokémon.
-          </Text>
+          <Text style={styles.titulo}>Iniciar sesión</Text>
+          <Text style={styles.descripcion}>Ingresa con tu correo y contraseña.</Text>
 
           <Text style={styles.etiqueta}>CORREO ELECTRÓNICO</Text>
           <TextInput
@@ -79,20 +82,19 @@ export default function Login() {
           />
 
           <BotonBrillante
-            title={enviando ? 'Abriendo portal…' : 'Entrar al universo'}
+            title={enviando ? 'Ingresando…' : 'Iniciar sesión'}
             onPress={handleLogin}
             disabled={enviando}
             style={styles.boton}
           />
 
-          <Text style={styles.pie}>¿Aún no tienes cuenta?</Text>
+          <Text style={styles.pie}>¿No tienes cuenta?</Text>
           <BotonBrillante
-            title="Crear cuenta de entrenador"
+            title="Registrarse"
             variant="secondary"
             onPress={() => navigation.navigate('Registro')}
           />
         </View>
-        <Text style={styles.frase}>Una galaxia entera te espera.</Text>
       </ScrollView>
     </View>
   );
@@ -101,7 +103,7 @@ export default function Login() {
 const styles = StyleSheet.create({
   pantalla: {
     flex: 1,
-    backgroundColor: '#050B18',
+    backgroundColor: '#182126',
   },
   contenido: {
     flexGrow: 1,
@@ -115,30 +117,22 @@ const styles = StyleSheet.create({
     padding: 28,
     borderRadius: 24,
     borderWidth: 1,
-    borderColor: 'rgba(112, 232, 255, 0.48)',
-    backgroundColor: 'rgba(8, 17, 40, 0.93)',
-    shadowColor: '#34DFFF',
+    borderColor: '#53625F',
+    backgroundColor: '#222F32',
+    shadowColor: '#000000',
     shadowOpacity: 0.22,
     shadowRadius: 28,
     shadowOffset: { width: 0, height: 8 },
     elevation: 8,
   },
-  insignia: {
-    color: '#70E8FF',
-    fontSize: 10,
-    fontWeight: '800',
-    letterSpacing: 2,
-    textAlign: 'center',
-    marginBottom: 12,
-  },
   titulo: {
-    color: '#F3FAFF',
+    color: '#F5F1E8',
     fontSize: 30,
     fontWeight: '900',
     textAlign: 'center',
   },
   descripcion: {
-    color: '#A8B9D4',
+    color: '#C4CCC9',
     fontSize: 14,
     lineHeight: 21,
     textAlign: 'center',
@@ -146,7 +140,7 @@ const styles = StyleSheet.create({
     marginBottom: 27,
   },
   etiqueta: {
-    color: '#8DA6CB',
+    color: '#AEB8B4',
     fontSize: 10,
     fontWeight: '800',
     letterSpacing: 1.4,
@@ -158,27 +152,20 @@ const styles = StyleSheet.create({
     paddingHorizontal: 15,
     marginBottom: 19,
     borderWidth: 1,
-    borderColor: '#293E62',
+    borderColor: '#53625F',
     borderRadius: 13,
-    backgroundColor: 'rgba(3, 10, 26, 0.92)',
-    color: '#F2FAFF',
+    backgroundColor: '#182126',
+    color: '#F5F1E8',
     fontSize: 15,
   },
   boton: {
     marginTop: 4,
   },
   pie: {
-    color: '#A8B9D4',
+    color: '#C4CCC9',
     textAlign: 'center',
     fontSize: 13,
     marginTop: 25,
     marginBottom: 10,
-  },
-  frase: {
-    color: '#7392BD',
-    fontSize: 12,
-    letterSpacing: 1,
-    textAlign: 'center',
-    marginTop: 18,
   },
 });
